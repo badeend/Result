@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Badeend;
 
@@ -46,31 +48,25 @@ public static class Result
 /// <see cref="TryGetError"><c>TryGetError</c></see>,
 /// <see cref="GetErrorOrDefault()"><c>GetErrorOrDefault</c></see>.
 ///
-/// A Result's <c>default</c> value is an uninitialized Result and will throw on
-/// any attempt to access the success or error state.
+/// A Result's <c>default</c> value is equivalent to <c>Result.Error(default!)</c>.
 /// </remarks>
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>
 /// <typeparam name="TError">Type of the result when the operation fails.</typeparam>
+[StructLayout(LayoutKind.Auto)]
 public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>>
 {
-	private enum ResultState
-	{
-		Uninitialized, // Must be the first item in the enum!
-		Success,
-		Error,
-	}
-
-	private readonly ResultState state;
 	private readonly TValue value;
 	private readonly TError error;
+	private readonly bool isSuccess;
 
 	/// <summary>
 	/// Create a successful result.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Result(TValue value)
 	{
-		this.state = ResultState.Success;
+		this.isSuccess = true;
 		this.value = value;
 		this.error = default!;
 	}
@@ -79,9 +75,10 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Create an error result.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Result(TError error)
 	{
-		this.state = ResultState.Error;
+		this.isSuccess = false;
 		this.value = default!;
 		this.error = error;
 	}
@@ -89,89 +86,64 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// <summary>
 	/// Check whether the operation succeeded.
 	/// </summary>
-	[Pure]
-	public bool IsSuccess => this.state switch
+	public bool IsSuccess
 	{
-		ResultState.Success => true,
-		ResultState.Error => false,
-		ResultState.Uninitialized => throw UninitializedException(),
-	};
+		[Pure]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		get => this.isSuccess;
+	}
 
 	/// <summary>
 	/// Check whether the operation failed.
 	/// </summary>
 	[Pure]
-	public bool IsError => this.state switch
+	public bool IsError
 	{
-		ResultState.Success => false,
-		ResultState.Error => true,
-		ResultState.Uninitialized => throw UninitializedException(),
-	};
+		[Pure]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		get => !this.isSuccess;
+	}
 
 	/// <summary>
 	/// Get the success value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation was not successful.</exception>
 	[Pure]
-	public TValue Value => this.state switch
-	{
-		ResultState.Success => this.value,
-		ResultState.Error => throw new InvalidOperationException("Can't get success value from failed result.", this.error as Exception),
-		ResultState.Uninitialized => throw UninitializedException(),
-	};
+	public TValue Value => this.isSuccess ? this.value : throw new InvalidOperationException("Can't get success value from failed result.", this.error as Exception);
 
 	/// <summary>
 	/// Get the error value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation did not fail.</exception>
 	[Pure]
-	public TError Error => this.state switch
-	{
-		ResultState.Success => throw new InvalidOperationException("Can't get error value from successful result."),
-		ResultState.Error => this.error,
-		ResultState.Uninitialized => throw UninitializedException(),
-	};
+	public TError Error => !this.isSuccess ? this.error : throw new InvalidOperationException("Can't get error value from successful result.");
 
 	/// <summary>
 	/// Attempt to get the operation's success value.
 	/// Returns <see langword="default"/> when the operation failed.
 	/// </summary>
 	[Pure]
-	public TValue? GetValueOrDefault() => this.GetValueOrDefault(default!);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public TValue? GetValueOrDefault() => this.value;
 
 	/// <summary>
 	/// Attempt to get the operation's success value.
 	/// Returns <paramref name="defaultValue"/> when the operation failed.
 	/// </summary>
 	[Pure]
-	public TValue GetValueOrDefault(TValue defaultValue) => this.state switch
-	{
-		ResultState.Success => this.value,
-		ResultState.Error => defaultValue,
-		ResultState.Uninitialized => throw UninitializedException(),
-	};
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public TValue GetValueOrDefault(TValue defaultValue) => this.isSuccess ? this.value : defaultValue;
 
 	/// <summary>
 	/// Attempt to store the operation's success value in <paramref name="value"/>.
 	/// Returns <see langword="false"/> when the operation failed.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool TryGetValue([MaybeNullWhen(false)] out TValue value)
 	{
-		if (this.state is ResultState.Success)
-		{
-			value = this.value;
-			return true;
-		}
-		else if (this.state is ResultState.Error)
-		{
-			value = default;
-			return false;
-		}
-		else
-		{
-			throw UninitializedException();
-		}
+		value = this.value;
+		return this.isSuccess;
 	}
 
 	/// <summary>
@@ -179,41 +151,27 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Returns <see langword="default"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
-	public TError? GetErrorOrDefault() => this.GetErrorOrDefault(default!);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public TError? GetErrorOrDefault() => this.error;
 
 	/// <summary>
 	/// Attempt to get the operation's error value.
 	/// Returns <paramref name="defaultValue"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
-	public TError GetErrorOrDefault(TError defaultValue) => this.state switch
-	{
-		ResultState.Success => defaultValue,
-		ResultState.Error => this.error,
-		ResultState.Uninitialized => throw UninitializedException(),
-	};
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public TError GetErrorOrDefault(TError defaultValue) => this.isSuccess ? defaultValue : this.error;
 
 	/// <summary>
 	/// Attempt to store the operation's failure in <paramref name="error"/>.
 	/// Returns <see langword="false"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool TryGetError([MaybeNullWhen(false)] out TError error)
 	{
-		if (this.state is ResultState.Error)
-		{
-			error = this.error;
-			return true;
-		}
-		else if (this.state is ResultState.Success)
-		{
-			error = default;
-			return false;
-		}
-		else
-		{
-			throw UninitializedException();
-		}
+		error = this.error;
+		return !this.isSuccess;
 	}
 
 	/// <summary>
@@ -221,11 +179,10 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// The format is not stable and may change without prior notice.
 	/// </summary>
 	[Pure]
-	public override string ToString() => this.state switch
+	public override string ToString() => this.isSuccess switch
 	{
-		ResultState.Success => $"Success({this.value?.ToString() ?? "null"})",
-		ResultState.Error => $"Error({this.error?.ToString() ?? "null"})",
-		ResultState.Uninitialized => string.Empty,
+		true => $"Success({this.value?.ToString() ?? "null"})",
+		false => $"Error({this.error?.ToString() ?? "null"})",
 	};
 
 #pragma warning disable CA2225 // Operator overloads have named alternates => Result.Success is good enough
@@ -260,11 +217,10 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Check for equality.
 	/// </summary>
 	[Pure]
-	public bool Equals(Result<TValue, TError> other) => (this.state, other.state) switch
+	public bool Equals(Result<TValue, TError> other) => (this.isSuccess, other.isSuccess) switch
 	{
-		(ResultState.Success, ResultState.Success) => EqualityComparer<TValue>.Default.Equals(this.value, other.value),
-		(ResultState.Error, ResultState.Error) => EqualityComparer<TError>.Default.Equals(this.error, other.error),
-		(ResultState.Uninitialized, ResultState.Uninitialized) => true,
+		(true, true) => EqualityComparer<TValue>.Default.Equals(this.value, other.value),
+		(false, false) => EqualityComparer<TError>.Default.Equals(this.error, other.error),
 		_ => false,
 	};
 
@@ -277,12 +233,9 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 
 	/// <inheritdoc/>
 	[Pure]
-	public override int GetHashCode() => this.state switch
+	public override int GetHashCode() => this.isSuccess switch
 	{
-		ResultState.Success => this.value?.GetHashCode() ?? 0,
-		ResultState.Error => this.error?.GetHashCode() ?? 0,
-		ResultState.Uninitialized => 0,
+		true => this.value?.GetHashCode() ?? 0,
+		false => this.error?.GetHashCode() ?? 0,
 	};
-
-	private static InvalidOperationException UninitializedException() => new("Uninitialized result.");
 }
