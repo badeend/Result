@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace Badeend;
 
 /// <summary>
-/// Initialization methods for <see cref="Result{TValue, TError}"/>.
+/// Supporting methods for <see cref="Result{TValue, TError}"/>.
 /// </summary>
 public static class Result
 {
@@ -21,6 +21,22 @@ public static class Result
 	/// </summary>
 	[Pure]
 	public static Result<TValue, TError> Error<TValue, TError>(TError error) => error;
+
+	/// <summary>
+	/// Attempt to get a readonly reference the operation's success value.
+	/// Returns a reference to to <typeparamref name="TValue"/>'s <c>default</c>
+	/// value when the operation failed.
+	/// </summary>
+	[Pure]
+	public static ref readonly TValue GetValueRefOrDefaultRef<TValue, TError>(ref readonly Result<TValue, TError> result) => ref result.value;
+
+	/// <summary>
+	/// Attempt to get a readonly reference to the operation's error value.
+	/// Returns a reference to to <typeparamref name="TError"/>'s <c>default</c>
+	/// value when the operation succeeded.
+	/// </summary>
+	[Pure]
+	public static ref readonly TError GetErrorRefOrDefaultRef<TValue, TError>(ref readonly Result<TValue, TError> result) => ref result.error;
 }
 
 /// <summary>
@@ -55,9 +71,13 @@ public static class Result
 [StructLayout(LayoutKind.Auto)]
 public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>>
 {
-	private readonly TValue value;
-	private readonly TError error;
-	private readonly bool isSuccess;
+#pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
+#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
+	internal readonly TValue value;
+	internal readonly TError error;
+	internal readonly bool isSuccess;
+#pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
+#pragma warning restore SA1304 // Non-private readonly fields should begin with upper-case letter
 
 	/// <summary>
 	/// Create a successful result.

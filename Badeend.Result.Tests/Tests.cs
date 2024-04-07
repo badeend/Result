@@ -11,17 +11,17 @@ public class Tests
 	/// <summary>
 	/// Success
 	/// </summary>
-	private readonly Result<int, string> s = 42;
+	private Result<int, string> s = 42;
 
 	/// <summary>
 	/// Error
 	/// </summary>
-	private readonly Result<int, string> e = "Bad";
+	private Result<int, string> e = "Bad";
 
 	/// <summary>
 	/// Default
 	/// </summary>
-	private readonly Result<int, string> d = default;
+	private Result<int, string> d = default;
 
 	[Fact]
 	public void StructuralEquality()
@@ -143,5 +143,21 @@ public class Tests
 		Assert.True(s.TryGetError(out var o1) == false && o1 is null);
 		Assert.True(e.TryGetError(out var o2) == true && o2 == "Bad");
 		Assert.True(d.TryGetError(out var o3) == true && o3 is null);
+	}
+
+	[Fact]
+	public void GetValueRefOrDefaultRef()
+	{
+		Assert.True(Result.GetValueRefOrDefaultRef(ref s) == 42);
+		Assert.True(Result.GetValueRefOrDefaultRef(ref e) == 0);
+		Assert.True(Result.GetValueRefOrDefaultRef(ref d) == 0);
+	}
+
+	[Fact]
+	public void GetErrorRefOrDefaultRef()
+	{
+		Assert.True(Result.GetErrorRefOrDefaultRef(ref s) is null);
+		Assert.True(Result.GetErrorRefOrDefaultRef(ref e) == "Bad");
+		Assert.True(Result.GetErrorRefOrDefaultRef(ref d) is null);
 	}
 }
