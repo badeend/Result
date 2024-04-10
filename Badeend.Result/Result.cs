@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
@@ -274,6 +275,8 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 
 	/// <inheritdoc/>
 	[Pure]
+	[Browsable(false)]
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	public override bool Equals(object? obj)
 	{
 		return obj is Result<TValue, TError> result && this.Equals(result);
