@@ -73,9 +73,9 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
+	internal readonly bool isSuccess;
 	internal readonly TValue value;
 	internal readonly TError error;
-	internal readonly bool isSuccess;
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1304 // Non-private readonly fields should begin with upper-case letter
 
