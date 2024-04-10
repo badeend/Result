@@ -1,0 +1,55 @@
+{
+  "metadata": [
+    {
+      "properties": {
+        "TargetFramework": "net8.0"
+      },
+      "src": [
+        {
+          "src": "..",
+          "files": [
+            "Badeend.Result/Badeend.Result.csproj"
+          ]
+        }
+      ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "rendered/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "rendered",
+    "template": [
+      "default",
+      "modern",
+      "template"
+    ],
+    "globalMetadata": {
+      "_appName": "Result",
+      "_appTitle": "Result",
+      "_appLogoPath": "images/logo-header.png",
+      "_appFaviconPath": "images/favicon.ico",
+      "_enableSearch": true,
+      "_gitContribute": {
+        "repo": "https://github.com/badeend/Result",
+        "branch": "main"
+      },
+      "pdf": false
+    }
+  }
+}

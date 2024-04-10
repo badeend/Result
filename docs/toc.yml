@@ -1,0 +1,7 @@
+- name: Introduction
+  href: index.md
+- name: API Reference
+  href: api/toc.yml
+  expanded: true
+- name: Source code
+  href: https://github.com/badeend/Result
