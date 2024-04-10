@@ -186,7 +186,6 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Returns <paramref name="defaultValue"/> when the operation failed.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public TValue GetValueOrDefault(TValue defaultValue) => this.isSuccess ? this.value : defaultValue;
 
 	/// <summary>
@@ -214,7 +213,6 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Returns <paramref name="defaultValue"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public TError GetErrorOrDefault(TError defaultValue) => this.isSuccess ? defaultValue : this.error;
 
 	/// <summary>
