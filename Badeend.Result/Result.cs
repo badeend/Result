@@ -48,17 +48,16 @@ public static class Result
 /// </summary>
 /// <remarks>
 /// Because of the implicit conversion operators you typically don't have to
-/// manually construct Results. If for some reason you do want or need to, you
-/// can use <see cref="Result.Success"><c>Result.Success()</c></see>,
-/// <see cref="Result.Error"><c>Result.Error()</c></see>
-/// or one of the constructors.
+/// manually construct Results. If you do want or need to, you can use
+/// <see cref="Result.Success"><c>Result.Success()</c></see> or
+/// <see cref="Result.Error"><c>Result.Error()</c></see> instead.
 ///
 /// The state can be inspected with
 /// <see cref="IsSuccess"><c>IsSuccess</c></see>,
 /// <see cref="Value"><c>Value</c></see>,
 /// <see cref="TryGetValue"><c>TryGetValue</c></see>, and
 /// <see cref="GetValueOrDefault()"><c>GetValueOrDefault</c></see>
-/// for successful operations. Failures can be inspected similarly using
+/// for successful operations. Failures can be checked similarly using
 /// <see cref="IsError"><c>IsError</c></see>,
 /// <see cref="Error"><c>Error</c></see>,
 /// <see cref="TryGetError"><c>TryGetError</c></see>,
@@ -79,24 +78,16 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1304 // Non-private readonly fields should begin with upper-case letter
 
-	/// <summary>
-	/// Create a successful result.
-	/// </summary>
-	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public Result(TValue value)
+	private Result(TValue value)
 	{
 		this.isSuccess = true;
 		this.value = value;
 		this.error = default!;
 	}
 
-	/// <summary>
-	/// Create an error result.
-	/// </summary>
-	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public Result(TError error)
+	private Result(TError error)
 	{
 		this.isSuccess = false;
 		this.value = default!;

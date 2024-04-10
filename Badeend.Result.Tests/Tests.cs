@@ -26,10 +26,10 @@ public class Tests
 	[Fact]
 	public void StructuralEquality()
 	{
-		Result<int, string> s2 = new(42);
+		Result<int, string> s2 = 42;
 		Result<int, string> s3 = Result.Success<int, string>(42);
 
-		Result<int, string> e2 = new("Bad");
+		Result<int, string> e2 = "Bad";
 		Result<int, string> e3 = Result.Error<int, string>("Bad");
 
 		Result<int, string> d2 = Result.Error<int, string>(null!);
