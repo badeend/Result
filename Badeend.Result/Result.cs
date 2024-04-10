@@ -106,9 +106,9 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// <summary>
 	/// Check whether the operation succeeded.
 	/// </summary>
+	[Pure]
 	public bool IsSuccess
 	{
-		[Pure]
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		get => this.isSuccess;
 	}
@@ -119,7 +119,6 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	[Pure]
 	public bool IsError
 	{
-		[Pure]
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		get => !this.isSuccess;
 	}
