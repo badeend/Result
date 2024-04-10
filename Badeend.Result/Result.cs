@@ -14,12 +14,14 @@ public static class Result
 	/// Create a successful result.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static Result<TValue, TError> Success<TValue, TError>(TValue value) => value;
 
 	/// <summary>
 	/// Create an error result.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static Result<TValue, TError> Error<TValue, TError>(TError error) => error;
 
 	/// <summary>
@@ -28,6 +30,7 @@ public static class Result
 	/// value when the operation failed.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static ref readonly TValue GetValueRefOrDefaultRef<TValue, TError>(ref readonly Result<TValue, TError> result) => ref result.value;
 
 	/// <summary>
@@ -36,6 +39,7 @@ public static class Result
 	/// value when the operation succeeded.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static ref readonly TError GetErrorRefOrDefaultRef<TValue, TError>(ref readonly Result<TValue, TError> result) => ref result.error;
 }
 
