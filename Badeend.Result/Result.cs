@@ -129,14 +129,50 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation was not successful.</exception>
 	[Pure]
-	public TValue Value => this.isSuccess ? this.value : throw new InvalidOperationException("Can't get success value from failed result.", this.error as Exception);
+	public TValue Value
+	{
+		get
+		{
+			if (!this.isSuccess)
+			{
+				// Extracted exceptional code path into separate method to aid inlining.
+				this.ThrowNotSuccessfulException();
+			}
+
+			return this.value;
+		}
+	}
+
+	[DoesNotReturn]
+	private void ThrowNotSuccessfulException()
+	{
+		throw new InvalidOperationException("Operation was not successful.", this.error as Exception);
+	}
 
 	/// <summary>
 	/// Get the error value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation did not fail.</exception>
 	[Pure]
-	public TError Error => !this.isSuccess ? this.error : throw new InvalidOperationException("Can't get error value from successful result.");
+	public TError Error
+	{
+		get
+		{
+			if (this.isSuccess)
+			{
+				// Extracted exceptional code path into separate method to aid inlining.
+				this.ThrowSuccessfulException();
+			}
+
+			return this.error;
+		}
+	}
+
+	[DoesNotReturn]
+	private void ThrowSuccessfulException()
+	{
+		throw new InvalidOperationException("Operation did not fail.");
+	}
 
 	/// <summary>
 	/// Attempt to get the operation's success value.
