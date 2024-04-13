@@ -29,15 +29,10 @@ Documentation & more information at: https://badeend.github.io/Result/
 
 #### Why does this package exist?
 
-There are already dozens of similar packages. Yet, surprisingly, none of them provided what I had in mind:
+There are already dozens of similar packages. Yet, surprisingly, none of them provided what I'm looking for:
 
-- `LanguageExt.Core`, `FluentResults`, `Ardalis.Result`, `DotNext`, `ErrorOr`, `DotNetCore.Results`, `Feree.ResultType`, `CSharp-Result`, `ResultType`, `OperationResult.Net`, `Orx.Fun.Result`, `Ergo.Result`:
-    - These all have a hardcoded failure type. IMO, this completely obviates the reason to use a result type _in C#_. I want the failure type to be parameterized (`TFailure`) without constraints.
-- `CSharpFunctionalExtensions.Result<T, E>`:
-    - It comes bundled as part of an entire Functional Programming framework, which is not what I'm looking for.
-    - (Nitpick) Its `default` value is a Successful result
-    - (Nitpick) It does not implement `IEquatable<..>` or equality operators.
-- `ResultSharp.Result<T, E>`:
-    - Seems like a 1:1 port from Rust. It doesn't feel very C#-like.
+- **No opinion on what is allowed to be a failure.** In other words: I want the failure type to be parameterized (`TFailure`) without constraints. IMO, hardcoding the failure type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
 
-All in all, I want a Result type that is written for __C#__ developers & codebases (not F#, iykwim 😇). My guiding principle when designing this was: "If such a type were to be added to the BCL, how would Microsoft design it?"
+- **Just Result, nothing else.** I'm not interested in a complete Functional Programming framework that introduces 20-or-so of new concepts, pushes all code into lambdas and attempts to redefine what it means to write C#. Speaking from experience, you'll just end up fighting the language every step of the way.
+
+- **"Native" C#.** It should feel as if it is written _by_ C# developers, _for_ C# developers, for use in (existing) C# codebases. Or put differently: if such a type were to be added to the BCL, how would Microsoft design it?
