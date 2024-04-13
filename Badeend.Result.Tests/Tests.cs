@@ -74,6 +74,14 @@ public class Tests
 	}
 
 	[Fact]
+	public void State()
+	{
+		Assert.Equal(ResultState.Success, s.State);
+		Assert.Equal(ResultState.Error, e.State);
+		Assert.Equal(ResultState.Error, d.State);
+	}
+
+	[Fact]
 	public void IsSuccess()
 	{
 		Assert.True(s.IsSuccess);

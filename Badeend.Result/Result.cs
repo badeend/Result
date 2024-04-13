@@ -7,6 +7,22 @@ using System.Runtime.InteropServices;
 namespace Badeend;
 
 /// <summary>
+/// State of a result.
+/// </summary>
+public enum ResultState
+{
+	/// <summary>
+	/// The operation failed.
+	/// </summary>
+	Error,
+
+	/// <summary>
+	/// The operation succeeded.
+	/// </summary>
+	Success,
+}
+
+/// <summary>
 /// Supporting methods for <see cref="Result{TValue, TError}"/>.
 /// </summary>
 public static class Result
@@ -57,15 +73,21 @@ public static class Result
 /// <see cref="Result.Success"><c>Result.Success()</c></see> or
 /// <see cref="Result.Error"><c>Result.Error()</c></see> instead.
 ///
-/// The state can be inspected with
+/// You can examine a result like this:
+/// <code>
+/// _ = myResult.State switch
+/// {
+///   ResultState.Success => $"Something successful: {myResult.Value}",
+///   ResultState.Error => $"Something failed: {myResult.Error}",
+/// };
+/// </code>
+///
+/// Or alternatively using
 /// <see cref="IsSuccess"><c>IsSuccess</c></see>,
-/// <see cref="Value"><c>Value</c></see>,
-/// <see cref="TryGetValue"><c>TryGetValue</c></see>, and
-/// <see cref="GetValueOrDefault()"><c>GetValueOrDefault</c></see>
-/// for successful operations. Failures can be checked similarly using
 /// <see cref="IsError"><c>IsError</c></see>,
-/// <see cref="Error"><c>Error</c></see>,
+/// <see cref="TryGetValue"><c>TryGetValue</c></see>,
 /// <see cref="TryGetError"><c>TryGetError</c></see>,
+/// <see cref="GetValueOrDefault()"><c>GetValueOrDefault</c></see> or
 /// <see cref="GetErrorOrDefault()"><c>GetErrorOrDefault</c></see>.
 ///
 /// A Result's <c>default</c> value is equivalent to <c>Result.Error(default!)</c>.
@@ -98,6 +120,12 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 		this.value = default!;
 		this.error = error;
 	}
+
+	/// <summary>
+	/// Get the state of the result (<see cref="ResultState.Success">Success</see> or <see cref="ResultState.Error">Error</see>).
+	/// </summary>
+	[Pure]
+	public ResultState State => this.isSuccess ? ResultState.Success : ResultState.Error;
 
 	/// <summary>
 	/// Check whether the operation succeeded.
