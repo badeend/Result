@@ -15,7 +15,7 @@ Documentation & more information at: https://badeend.github.io/Result/
 
 #### Why does this package exist?
 
-There are already dozens of similar packages. Yet, surprisingly, none of them provided what I'm looking for:
+There are already dozens of similar packages. Yet, surprisingly, none of them provide what I'm looking for:
 
 - **No opinion on what is allowed to be a failure.** In other words: I want the failure type to be parameterized (`TFailure`) without constraints. IMO, hardcoding the failure type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
 
