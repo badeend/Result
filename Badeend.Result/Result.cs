@@ -14,7 +14,7 @@ public enum ResultState
 	/// <summary>
 	/// The operation failed.
 	/// </summary>
-	Error,
+	Failure,
 
 	/// <summary>
 	/// The operation succeeded.
@@ -23,7 +23,7 @@ public enum ResultState
 }
 
 /// <summary>
-/// Supporting methods for <see cref="Result{TValue, TError}"/>.
+/// Supporting methods for <see cref="Result{TValue, TFailure}"/>.
 /// </summary>
 public static class Result
 {
@@ -32,14 +32,14 @@ public static class Result
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static Result<TValue, TError> Success<TValue, TError>(TValue value) => value;
+	public static Result<TValue, TFailure> Success<TValue, TFailure>(TValue value) => value;
 
 	/// <summary>
-	/// Create an error result.
+	/// Create a failure result.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static Result<TValue, TError> Error<TValue, TError>(TError error) => error;
+	public static Result<TValue, TFailure> Failure<TValue, TFailure>(TFailure failure) => failure;
 
 	/// <summary>
 	/// Attempt to get a readonly reference the operation's success value.
@@ -48,60 +48,62 @@ public static class Result
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ref readonly TValue GetValueRefOrDefaultRef<TValue, TError>(ref readonly Result<TValue, TError> result) => ref result.value;
+	public static ref readonly TValue GetValueRefOrDefaultRef<TValue, TFailure>(ref readonly Result<TValue, TFailure> result) => ref result.value;
 
 	/// <summary>
-	/// Attempt to get a readonly reference to the operation's error value.
-	/// Returns a reference to to <typeparamref name="TError"/>'s <c>default</c>
+	/// Attempt to get a readonly reference to the operation's failure value.
+	/// Returns a reference to to <typeparamref name="TFailure"/>'s <c>default</c>
 	/// value when the operation succeeded.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ref readonly TError GetErrorRefOrDefaultRef<TValue, TError>(ref readonly Result<TValue, TError> result) => ref result.error;
+	public static ref readonly TFailure GetFailureRefOrDefaultRef<TValue, TFailure>(ref readonly Result<TValue, TFailure> result) => ref result.failure;
 }
 
 /// <summary>
 /// Represents the result of a fallible operation.
 ///
-/// A <c>Result</c> can be in one of two states: "success" or "error". Both states
-/// have an associated payload of type <typeparamref name="TValue"/> or
-/// <typeparamref name="TError"/> respectively.
+/// A <c>Result</c> can be in one of two states:
+/// <see cref="ResultState.Success">Success</see> or
+/// <see cref="ResultState.Failure">Failure</see>.
+/// Both states have an associated payload of type <typeparamref name="TValue"/>
+/// or <typeparamref name="TFailure"/> respectively.
 /// </summary>
 /// <remarks>
 /// Because of the implicit conversion operators you typically don't have to
 /// manually construct Results. If you do want or need to, you can use
 /// <see cref="Result.Success"><c>Result.Success()</c></see> or
-/// <see cref="Result.Error"><c>Result.Error()</c></see> instead.
+/// <see cref="Result.Failure"><c>Result.Failure()</c></see> instead.
 ///
 /// You can examine a result like this:
 /// <code>
 /// _ = myResult.State switch
 /// {
 ///   ResultState.Success => $"Something successful: {myResult.Value}",
-///   ResultState.Error => $"Something failed: {myResult.Error}",
+///   ResultState.Failure => $"Something failed: {myResult.Failure}",
 /// };
 /// </code>
 ///
 /// Or alternatively using
 /// <see cref="IsSuccess"><c>IsSuccess</c></see>,
-/// <see cref="IsError"><c>IsError</c></see>,
+/// <see cref="IsFailure"><c>IsFailure</c></see>,
 /// <see cref="TryGetValue"><c>TryGetValue</c></see>,
-/// <see cref="TryGetError"><c>TryGetError</c></see>,
+/// <see cref="TryGetFailure"><c>TryGetFailure</c></see>,
 /// <see cref="GetValueOrDefault()"><c>GetValueOrDefault</c></see> or
-/// <see cref="GetErrorOrDefault()"><c>GetErrorOrDefault</c></see>.
+/// <see cref="GetFailureOrDefault()"><c>GetFailureOrDefault</c></see>.
 ///
-/// A Result's <c>default</c> value is equivalent to <c>Result.Error(default!)</c>.
+/// A Result's <c>default</c> value is equivalent to <c>Result.Failure(default!)</c>.
 /// </remarks>
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>
-/// <typeparam name="TError">Type of the result when the operation fails.</typeparam>
+/// <typeparam name="TFailure">Type of the result when the operation fails.</typeparam>
 [StructLayout(LayoutKind.Auto)]
-public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>>
+public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFailure>>
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 	internal readonly bool isSuccess;
 	internal readonly TValue value;
-	internal readonly TError error;
+	internal readonly TFailure failure;
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1304 // Non-private readonly fields should begin with upper-case letter
 
@@ -110,22 +112,22 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	{
 		this.isSuccess = true;
 		this.value = value;
-		this.error = default!;
+		this.failure = default!;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private Result(TError error)
+	private Result(TFailure failure)
 	{
 		this.isSuccess = false;
 		this.value = default!;
-		this.error = error;
+		this.failure = failure;
 	}
 
 	/// <summary>
-	/// Get the state of the result (<see cref="ResultState.Success">Success</see> or <see cref="ResultState.Error">Error</see>).
+	/// Get the state of the result (<see cref="ResultState.Success">Success</see> or <see cref="ResultState.Failure">Failure</see>).
 	/// </summary>
 	[Pure]
-	public ResultState State => this.isSuccess ? ResultState.Success : ResultState.Error;
+	public ResultState State => this.isSuccess ? ResultState.Success : ResultState.Failure;
 
 	/// <summary>
 	/// Check whether the operation succeeded.
@@ -141,7 +143,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Check whether the operation failed.
 	/// </summary>
 	[Pure]
-	public bool IsError
+	public bool IsFailure
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		get => !this.isSuccess;
@@ -169,15 +171,15 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	[DoesNotReturn]
 	private void ThrowNotSuccessfulException()
 	{
-		throw new InvalidOperationException("Operation was not successful.", this.error as Exception);
+		throw new InvalidOperationException("Operation was not successful.", this.failure as Exception);
 	}
 
 	/// <summary>
-	/// Get the error value.
+	/// Get the failure value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation did not fail.</exception>
 	[Pure]
-	public TError Error
+	public TFailure Failure
 	{
 		get
 		{
@@ -187,7 +189,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 				this.ThrowSuccessfulException();
 			}
 
-			return this.error;
+			return this.failure;
 		}
 	}
 
@@ -225,29 +227,29 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	}
 
 	/// <summary>
-	/// Attempt to get the operation's error value.
+	/// Attempt to get the operation's failure value.
 	/// Returns <see langword="default"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public TError? GetErrorOrDefault() => this.error;
+	public TFailure? GetFailureOrDefault() => this.failure;
 
 	/// <summary>
-	/// Attempt to get the operation's error value.
+	/// Attempt to get the operation's failure value.
 	/// Returns <paramref name="defaultValue"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
-	public TError GetErrorOrDefault(TError defaultValue) => this.isSuccess ? defaultValue : this.error;
+	public TFailure GetFailureOrDefault(TFailure defaultValue) => this.isSuccess ? defaultValue : this.failure;
 
 	/// <summary>
-	/// Attempt to store the operation's failure in <paramref name="error"/>.
+	/// Attempt to store the operation's failure in <paramref name="failure"/>.
 	/// Returns <see langword="false"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool TryGetError([MaybeNullWhen(false)] out TError error)
+	public bool TryGetFailure([MaybeNullWhen(false)] out TFailure failure)
 	{
-		error = this.error;
+		failure = this.failure;
 		return !this.isSuccess;
 	}
 
@@ -259,7 +261,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	public override string ToString() => this.isSuccess switch
 	{
 		true => $"Success({this.value?.ToString() ?? "null"})",
-		false => $"Error({this.error?.ToString() ?? "null"})",
+		false => $"Failure({this.failure?.ToString() ?? "null"})",
 	};
 
 #pragma warning disable CA2225 // Operator overloads have named alternates => Result.Success is good enough
@@ -267,37 +269,37 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Create a successful result.
 	/// </summary>
 	[Pure]
-	public static implicit operator Result<TValue, TError>(TValue value) => new(value);
+	public static implicit operator Result<TValue, TFailure>(TValue value) => new(value);
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
-#pragma warning disable CA2225 // Operator overloads have named alternates => Result.Error is good enough
+#pragma warning disable CA2225 // Operator overloads have named alternates => Result.Failure is good enough
 	/// <summary>
-	/// Create an error result.
+	/// Create a failure result.
 	/// </summary>
 	[Pure]
-	public static implicit operator Result<TValue, TError>(TError error) => new(error);
+	public static implicit operator Result<TValue, TFailure>(TFailure failure) => new(failure);
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
 	/// <summary>
 	/// Check for equality.
 	/// </summary>
 	[Pure]
-	public static bool operator ==(Result<TValue, TError> left, Result<TValue, TError> right) => left.Equals(right);
+	public static bool operator ==(Result<TValue, TFailure> left, Result<TValue, TFailure> right) => left.Equals(right);
 
 	/// <summary>
 	/// Check for inequality.
 	/// </summary>
 	[Pure]
-	public static bool operator !=(Result<TValue, TError> left, Result<TValue, TError> right) => !left.Equals(right);
+	public static bool operator !=(Result<TValue, TFailure> left, Result<TValue, TFailure> right) => !left.Equals(right);
 
 	/// <summary>
 	/// Check for equality.
 	/// </summary>
 	[Pure]
-	public bool Equals(Result<TValue, TError> other) => (this.isSuccess, other.isSuccess) switch
+	public bool Equals(Result<TValue, TFailure> other) => (this.isSuccess, other.isSuccess) switch
 	{
 		(true, true) => EqualityComparer<TValue>.Default.Equals(this.value, other.value),
-		(false, false) => EqualityComparer<TError>.Default.Equals(this.error, other.error),
+		(false, false) => EqualityComparer<TFailure>.Default.Equals(this.failure, other.failure),
 		_ => false,
 	};
 
@@ -307,7 +309,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public override bool Equals(object? obj)
 	{
-		return obj is Result<TValue, TError> result && this.Equals(result);
+		return obj is Result<TValue, TFailure> result && this.Equals(result);
 	}
 
 	/// <inheritdoc/>
@@ -315,6 +317,6 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	public override int GetHashCode() => this.isSuccess switch
 	{
 		true => this.value?.GetHashCode() ?? 0,
-		false => this.error?.GetHashCode() ?? 0,
+		false => this.failure?.GetHashCode() ?? 0,
 	};
 }

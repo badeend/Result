@@ -14,9 +14,9 @@ public class Tests
 	private Result<int, string> s = 42;
 
 	/// <summary>
-	/// Error
+	/// Failure
 	/// </summary>
-	private Result<int, string> e = "Bad";
+	private Result<int, string> f = "Bad";
 
 	/// <summary>
 	/// Default
@@ -29,10 +29,10 @@ public class Tests
 		Result<int, string> s2 = 42;
 		Result<int, string> s3 = Result.Success<int, string>(42);
 
-		Result<int, string> e2 = "Bad";
-		Result<int, string> e3 = Result.Error<int, string>("Bad");
+		Result<int, string> f2 = "Bad";
+		Result<int, string> f3 = Result.Failure<int, string>("Bad");
 
-		Result<int, string> d2 = Result.Error<int, string>(null!);
+		Result<int, string> d2 = Result.Failure<int, string>(null!);
 
 		Assert.True(s == s);
 		Assert.True(s == s2);
@@ -43,14 +43,14 @@ public class Tests
 		Assert.True(s != "Bad");
 		Assert.True(s != default);
 
-		Assert.True(e == e);
-		Assert.True(e == e2);
-		Assert.True(e == e3);
+		Assert.True(f == f);
+		Assert.True(f == f2);
+		Assert.True(f == f3);
 
-		Assert.True(e == "Bad");
-		Assert.True(e != "Worse");
-		Assert.True(e != 42);
-		Assert.True(e != default);
+		Assert.True(f == "Bad");
+		Assert.True(f != "Worse");
+		Assert.True(f != 42);
+		Assert.True(f != default);
 
 		Assert.True(d == d);
 		Assert.True(d == d2);
@@ -61,7 +61,7 @@ public class Tests
 		Assert.True(d != 42);
 
 		Assert.True(s.GetHashCode() == 42.GetHashCode());
-		Assert.True(e.GetHashCode() == "Bad".GetHashCode());
+		Assert.True(f.GetHashCode() == "Bad".GetHashCode());
 		Assert.True(d.GetHashCode() == 0);
 	}
 
@@ -69,103 +69,103 @@ public class Tests
 	public void ObjectToString()
 	{
 		Assert.Equal("Success(42)", s.ToString());
-		Assert.Equal("Error(Bad)", e.ToString());
-		Assert.Equal("Error(null)", d.ToString());
+		Assert.Equal("Failure(Bad)", f.ToString());
+		Assert.Equal("Failure(null)", d.ToString());
 	}
 
 	[Fact]
 	public void State()
 	{
 		Assert.Equal(ResultState.Success, s.State);
-		Assert.Equal(ResultState.Error, e.State);
-		Assert.Equal(ResultState.Error, d.State);
+		Assert.Equal(ResultState.Failure, f.State);
+		Assert.Equal(ResultState.Failure, d.State);
 	}
 
 	[Fact]
 	public void IsSuccess()
 	{
 		Assert.True(s.IsSuccess);
-		Assert.False(e.IsSuccess);
+		Assert.False(f.IsSuccess);
 		Assert.False(d.IsSuccess);
 	}
 
 	[Fact]
-	public void IsError()
+	public void IsFailure()
 	{
-		Assert.False(s.IsError);
-		Assert.True(e.IsError);
-		Assert.True(d.IsError);
+		Assert.False(s.IsFailure);
+		Assert.True(f.IsFailure);
+		Assert.True(d.IsFailure);
 	}
 
 	[Fact]
 	public void Value()
 	{
 		Assert.True(s.Value == 42);
-		Assert.Throws<InvalidOperationException>(() => e.Value);
+		Assert.Throws<InvalidOperationException>(() => f.Value);
 		Assert.Throws<InvalidOperationException>(() => d.Value);
 	}
 
 	[Fact]
-	public void Error()
+	public void Failure()
 	{
-		Assert.Throws<InvalidOperationException>(() => s.Error);
-		Assert.True(e.Error == "Bad");
-		Assert.True(d.Error is null);
+		Assert.Throws<InvalidOperationException>(() => s.Failure);
+		Assert.True(f.Failure == "Bad");
+		Assert.True(d.Failure is null);
 	}
 
 	[Fact]
 	public void GetValueOrDefault()
 	{
 		Assert.True(s.GetValueOrDefault() == 42);
-		Assert.True(e.GetValueOrDefault() == 0);
+		Assert.True(f.GetValueOrDefault() == 0);
 		Assert.True(d.GetValueOrDefault() == 0);
 
 		Assert.True(s.GetValueOrDefault(314) == 42);
-		Assert.True(e.GetValueOrDefault(314) == 314);
+		Assert.True(f.GetValueOrDefault(314) == 314);
 		Assert.True(d.GetValueOrDefault(314) == 314);
 	}
 
 	[Fact]
-	public void GetErrorOrDefault()
+	public void GetFailureOrDefault()
 	{
-		Assert.True(s.GetErrorOrDefault() is null);
-		Assert.True(e.GetErrorOrDefault() == "Bad");
-		Assert.True(d.GetErrorOrDefault() is null);
+		Assert.True(s.GetFailureOrDefault() is null);
+		Assert.True(f.GetFailureOrDefault() == "Bad");
+		Assert.True(d.GetFailureOrDefault() is null);
 
-		Assert.True(s.GetErrorOrDefault("Worse") == "Worse");
-		Assert.True(e.GetErrorOrDefault("Worse") == "Bad");
-		Assert.True(d.GetErrorOrDefault("Worse") is null);
+		Assert.True(s.GetFailureOrDefault("Worse") == "Worse");
+		Assert.True(f.GetFailureOrDefault("Worse") == "Bad");
+		Assert.True(d.GetFailureOrDefault("Worse") is null);
 	}
 
 	[Fact]
 	public void TryGetValue()
 	{
 		Assert.True(s.TryGetValue(out var o1) == true && o1 == 42);
-		Assert.True(e.TryGetValue(out var o2) == false && o2 == 0);
+		Assert.True(f.TryGetValue(out var o2) == false && o2 == 0);
 		Assert.True(d.TryGetValue(out var o3) == false && o3 == 0);
 	}
 
 	[Fact]
-	public void TryGetError()
+	public void TryGetFailure()
 	{
-		Assert.True(s.TryGetError(out var o1) == false && o1 is null);
-		Assert.True(e.TryGetError(out var o2) == true && o2 == "Bad");
-		Assert.True(d.TryGetError(out var o3) == true && o3 is null);
+		Assert.True(s.TryGetFailure(out var o1) == false && o1 is null);
+		Assert.True(f.TryGetFailure(out var o2) == true && o2 == "Bad");
+		Assert.True(d.TryGetFailure(out var o3) == true && o3 is null);
 	}
 
 	[Fact]
 	public void GetValueRefOrDefaultRef()
 	{
 		Assert.True(Result.GetValueRefOrDefaultRef(ref s) == 42);
-		Assert.True(Result.GetValueRefOrDefaultRef(ref e) == 0);
+		Assert.True(Result.GetValueRefOrDefaultRef(ref f) == 0);
 		Assert.True(Result.GetValueRefOrDefaultRef(ref d) == 0);
 	}
 
 	[Fact]
-	public void GetErrorRefOrDefaultRef()
+	public void GetFailureRefOrDefaultRef()
 	{
-		Assert.True(Result.GetErrorRefOrDefaultRef(ref s) is null);
-		Assert.True(Result.GetErrorRefOrDefaultRef(ref e) == "Bad");
-		Assert.True(Result.GetErrorRefOrDefaultRef(ref d) is null);
+		Assert.True(Result.GetFailureRefOrDefaultRef(ref s) is null);
+		Assert.True(Result.GetFailureRefOrDefaultRef(ref f) == "Bad");
+		Assert.True(Result.GetFailureRefOrDefaultRef(ref d) is null);
 	}
 }
