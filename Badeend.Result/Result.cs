@@ -153,7 +153,6 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	/// Get the success value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation was not successful.</exception>
-	[Pure]
 	public TValue Value
 	{
 		get
@@ -178,7 +177,6 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	/// Get the failure value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation did not fail.</exception>
-	[Pure]
 	public TFailure Failure
 	{
 		get
@@ -218,7 +216,6 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	/// Attempt to store the operation's success value in <paramref name="value"/>.
 	/// Returns <see langword="false"/> when the operation failed.
 	/// </summary>
-	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool TryGetValue([MaybeNullWhen(false)] out TValue value)
 	{
@@ -245,7 +242,6 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	/// Attempt to store the operation's failure in <paramref name="failure"/>.
 	/// Returns <see langword="false"/> when the operation succeeded.
 	/// </summary>
-	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool TryGetFailure([MaybeNullWhen(false)] out TFailure failure)
 	{
