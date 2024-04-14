@@ -155,7 +155,7 @@ There are already dozens of similar packages. Yet, surprisingly, none of them pr
 
 - **No opinion on what is allowed to be a failure.** In other words: I want the failure type to be parameterized (`TFailure`) without constraints. IMO, hardcoding the failure type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
 
-- **Just Result, nothing else.** I'm not interested in a complete Functional Programming framework that introduces 20-or-so of new concepts, pushes all code into lambdas and attempts to redefine what it means to write C#. Speaking from experience, you'll just end up fighting the language every step of the way.
+- **Just Result, nothing else.** I'm not interested in a complete Functional Programming framework that introduces 20-or-so new concepts, pushes all code into lambdas and attempts to redefine what it means to write C#. Not because I don't like FP, but because the language & ecosystem (sadly 🥲) doesn't afford it.
 
 - **"Native" C#.** It should feel as if it is written _by_ C# developers, _for_ C# developers, for use in (existing) C# codebases. Or put differently: if such a type were to be added to the BCL, how would Microsoft design it?
 

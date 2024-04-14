@@ -43,7 +43,7 @@ public static class Result
 
 	/// <summary>
 	/// Attempt to get a readonly reference the operation's success value.
-	/// Returns a reference to to <typeparamref name="TValue"/>'s <c>default</c>
+	/// Returns a reference to <typeparamref name="TValue"/>'s <c>default</c>
 	/// value when the operation failed.
 	/// </summary>
 	[Pure]
@@ -52,7 +52,7 @@ public static class Result
 
 	/// <summary>
 	/// Attempt to get a readonly reference to the operation's failure value.
-	/// Returns a reference to to <typeparamref name="TFailure"/>'s <c>default</c>
+	/// Returns a reference to <typeparamref name="TFailure"/>'s <c>default</c>
 	/// value when the operation succeeded.
 	/// </summary>
 	[Pure]
