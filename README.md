@@ -23,7 +23,9 @@ Results are commonly used in scenarios where failure is anticipated can be handl
 
 `Result<TValue, TFailure>` represents the result of a fallible operation as a first class value. A result can be in one of two states: "success" or "failure". Both states have an associated payload of type `TValue` or `TFailure` respectively.
 
-Documentation & more information at: https://badeend.github.io/Result/
+---
+
+**Documentation & more information at: https://badeend.github.io/Result/**
 
 ---
 
