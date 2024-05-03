@@ -97,7 +97,7 @@ public static class Result
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>
 /// <typeparam name="TFailure">Type of the result when the operation fails.</typeparam>
 [StructLayout(LayoutKind.Auto)]
-public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFailure>>
+public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFailure>>, IComparable<Result<TValue, TFailure>>, IComparable
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
@@ -299,6 +299,23 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 		_ => false,
 	};
 
+	/// <summary>
+	/// Compare two results.
+	///
+	/// Successful results precede failed results.
+	/// </summary>
+	/// <returns>
+	/// See <see cref="IComparable{T}.CompareTo(T)"><c>IComparable&lt;T&gt;.CompareTo(T)</c></see> for more information.
+	/// </returns>
+	[Pure]
+	public int CompareTo(Result<TValue, TFailure> other) => (this.isSuccess, other.isSuccess) switch
+	{
+		(true, false) => -1,
+		(true, true) => Comparer<TValue>.Default.Compare(this.value, other.value),
+		(false, false) => Comparer<TFailure>.Default.Compare(this.failure, other.failure),
+		(false, true) => 1,
+	};
+
 	/// <inheritdoc/>
 	[Pure]
 	[Browsable(false)]
@@ -307,6 +324,18 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	{
 		return obj is Result<TValue, TFailure> result && this.Equals(result);
 	}
+
+	/// <inheritdoc/>
+	int IComparable.CompareTo(object? other) => other switch
+	{
+		null => 1,
+		Result<TValue, TFailure> otherResult => this.CompareTo(otherResult),
+
+		// FYI, we could additionally match against `TValue` and `TFailure` directly,
+		// but if they represent the same type or are subtypes of each other
+		// (e.g. `Result<object, string>`), the outcome would be ill-defined.
+		_ => throw new ArgumentException("Comparison with incompatible type", nameof(other)),
+	};
 
 	/// <inheritdoc/>
 	[Pure]

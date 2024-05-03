@@ -168,4 +168,32 @@ public class Tests
 		Assert.True(Result.GetFailureRefOrDefaultRef(ref f) == "Bad");
 		Assert.True(Result.GetFailureRefOrDefaultRef(ref d) is null);
 	}
+
+	[Fact]
+	public void CompareTo()
+	{
+		Result<int, string> three = 3; // Success
+		Result<int, string> four = 4; // Success
+
+		Result<int, string> cat = "Cat"; // Failure
+		Result<int, string> dog = "Dog"; // Failure
+
+		Assert.True(three.CompareTo(four) < 0);
+		Assert.True(three.CompareTo(three) == 0);
+		Assert.True(four.CompareTo(three) > 0);
+		Assert.True(four.CompareTo(four) == 0);
+
+		Assert.True(cat.CompareTo(dog) < 0);
+		Assert.True(cat.CompareTo(cat) == 0);
+		Assert.True(dog.CompareTo(cat) > 0);
+		Assert.True(dog.CompareTo(dog) == 0);
+
+		Assert.True(three.CompareTo(cat) < 0);
+		Assert.True(cat.CompareTo(three) > 0);
+
+		Result<int, string>[] unordered = [dog, four, three, cat];
+		Result<int, string>[] ordered = unordered.OrderBy(r => r).ToArray();
+
+		Assert.Equal([three, four, cat, dog], ordered);
+	}
 }
