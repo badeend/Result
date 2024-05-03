@@ -169,6 +169,7 @@ There are already dozens of similar packages. Yet, surprisingly, none of them pr
   - [DotNext](https://www.nuget.org/packages/DotNext)
   - [ErrorOr](https://www.nuget.org/packages/ErrorOr)
   - [DotNetCore.Results](https://www.nuget.org/packages/DotNetCore.Results)
+  - [Remora.Results](https://www.nuget.org/packages/Remora.Results)
   - [ResultSharp](https://www.nuget.org/packages/ResultSharp)
   - [Feree.ResultType](https://www.nuget.org/packages/Feree.ResultType)
   - [CSharp-Result](https://www.nuget.org/packages/CSharp-Result)
