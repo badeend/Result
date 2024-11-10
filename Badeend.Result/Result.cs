@@ -9,17 +9,22 @@ namespace Badeend;
 /// <summary>
 /// State of a result.
 /// </summary>
-public enum ResultState
+public enum ResultState : byte
 {
-	/// <summary>
-	/// The operation failed.
-	/// </summary>
-	Failure,
+	// The enum cases appear in reverse order with explicitly defined values.
+	// This was done so that the "Add missing cases" code fix (IDE0072)
+	// automatically puts the happy path (Success) first. While also still
+	// keeping the Failure case as the enum's `default` value.
 
 	/// <summary>
 	/// The operation succeeded.
 	/// </summary>
-	Success,
+	Success = 1,
+
+	/// <summary>
+	/// The operation failed.
+	/// </summary>
+	Failure = 0,
 }
 
 /// <summary>

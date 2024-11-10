@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Badeend;
 
@@ -218,5 +219,17 @@ public class Tests
 
 		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingValueType(null!));
 		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingFailureType(null!));
+	}
+
+	[Fact]
+	public void ResultStateBinaryProperties()
+	{
+		var s = ResultState.Success;
+		var f = ResultState.Failure;
+
+		Assert.True(ResultState.Failure == default(ResultState));
+		Assert.True(Unsafe.SizeOf<ResultState>() == Unsafe.SizeOf<bool>());
+		Assert.True(Unsafe.As<ResultState, bool>(ref s) == true);
+		Assert.True(Unsafe.As<ResultState, bool>(ref f) == false);
 	}
 }
