@@ -4,7 +4,7 @@
 
 # Introduction
 
-This packages provides a `Result<TValue, TFailure>` type for C#, spiritually similar to those available in [Rust](https://doc.rust-lang.org/std/result/enum.Result.html), [Swift](https://developer.apple.com/documentation/swift/result), [Kotlin](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-result/), [C++](https://en.cppreference.com/w/cpp/utility/expected) and basically every functional programming language under the sun.
+This packages provides a `Result<TValue, TError>` type for C#, spiritually similar to those available in [Rust](https://doc.rust-lang.org/std/result/enum.Result.html), [Swift](https://developer.apple.com/documentation/swift/result), [Kotlin](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-result/), [C++](https://en.cppreference.com/w/cpp/utility/expected) and basically every functional programming language under the sun.
 
 Results are commonly used in scenarios where failure is anticipated can be handled gracefully by the caller. Examples include:
 - Input validation,
@@ -13,7 +13,7 @@ Results are commonly used in scenarios where failure is anticipated can be handl
 - Authentication and authorization,
 - and more ...
 
-`Result<TValue, TFailure>` represents the result of a fallible operation as a first class value. A result can be in one of two states: "success" or "failure". Both states have an associated payload of type `TValue` or `TFailure` respectively.
+`Result<TValue, TError>` represents the result of a fallible operation as a first class value. A result can be in one of two states: "success" or "error". Both states have an associated payload of type `TValue` or `TError` respectively.
 
 ## Installation
 
@@ -30,7 +30,7 @@ dotnet add package Badeend.Result
 #### Create Result
 
 ```cs
-public enum SignInError // Failures can be any type you want. For this example I chose a simple enum.
+public enum SignInError // Errors can be any type you want. For this example I chose a simple enum.
 {
     InvalidCredentials,
     LockedOut,
@@ -44,7 +44,7 @@ public Result<Session, SignInError> SignIn(string email, string password) // <--
     var user = FindUserByEmail(email);
     if (user is null || !user.VerifyPassword(password))
     {
-        return SignInError.InvalidCredentials; // Error is implicitly wrapped with `Result.Failure(...)`
+        return SignInError.InvalidCredentials; // Error is implicitly wrapped with `Result.Error(...)`
     }
 
     if (user.IsLockedOut)
@@ -66,7 +66,7 @@ public async Task<ActionResult<Session>> PostSignIn(SignInRequest request)
     return result.State switch // Tip!: enable CS8509 & disable CS8524 for exhaustiveness checking.
     {
         ResultState.Success => Ok(result.Value),
-        ResultState.Failure => BadRequest(result.Failure),
+        ResultState.Error => BadRequest(result.Error),
     };
 
 
@@ -78,7 +78,7 @@ public async Task<ActionResult<Session>> PostSignIn(SignInRequest request)
     }
     else
     {
-        return BadRequest(result.Failure);
+        return BadRequest(result.Error);
     }
 }
 ```
@@ -89,11 +89,11 @@ You can use Results when designing fallible methods where:
 - failures are part of the domain model and should therefore be part of the regular control flow. And/or:
 - the implementation is not in the position to decide whether failures are exceptional or not and you want to leave that up to the caller.
 
-#### Choosing a failure type
+#### Choosing an error type
 
 It can be anything that describes the failure; an `enum`, a `record`, a list of validation messages, etc... Let your mind run free.
 
-Keep in mind that the failure value should contain enough information for callers of your method to do something meaningful with it. If the caller has no other option than to propagate it up the callstack (recursively), then you might as well throw an exception.
+Keep in mind that the error value should contain enough information for callers of your method to do something meaningful with it. If the caller has no other option than to propagate it up the callstack (recursively), then you might as well throw an exception.
 
 One noteworthy case to watch out for is: `Result<T, Exception>`. There may be legitimate use cases for it, but it smells like it's trying to reinvent exception handling.
 
@@ -153,7 +153,7 @@ Using C# exceptions complemented with Results is the best of both worlds; by def
 
 There are already dozens of similar packages. Yet, surprisingly, none of them provide what I'm looking for:
 
-- **No opinion on what is allowed to be a failure.** In other words: I want the failure type to be parameterized (`TFailure`) without constraints. IMO, hardcoding the failure type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
+- **No opinion on what is allowed to be an error.** In other words: I want the error type to be parameterized (`TError`) without constraints. IMO, hardcoding the error type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
 
 - **Just Result, nothing else.** I'm not interested in a complete Functional Programming framework that introduces 20-or-so new concepts, pushes all code into lambdas and attempts to redefine what it means to write C#. Not because I don't like FP, but because the language & ecosystem (sadly 🥲) doesn't afford it.
 

@@ -15,7 +15,7 @@ public class Tests
 	private Result<int, string> s = 42;
 
 	/// <summary>
-	/// Failure
+	/// Error
 	/// </summary>
 	private Result<int, string> f = "Bad";
 
@@ -31,9 +31,9 @@ public class Tests
 		Result<int, string> s3 = Result.Success<int, string>(42);
 
 		Result<int, string> f2 = "Bad";
-		Result<int, string> f3 = Result.Failure<int, string>("Bad");
+		Result<int, string> f3 = Result.Error<int, string>("Bad");
 
-		Result<int, string> d2 = Result.Failure<int, string>(null!);
+		Result<int, string> d2 = Result.Error<int, string>(null!);
 
 		Assert.True(s == s);
 		Assert.True(s == s2);
@@ -70,16 +70,16 @@ public class Tests
 	public void ObjectToString()
 	{
 		Assert.Equal("Success(42)", s.ToString());
-		Assert.Equal("Failure(Bad)", f.ToString());
-		Assert.Equal("Failure(null)", d.ToString());
+		Assert.Equal("Error(Bad)", f.ToString());
+		Assert.Equal("Error(null)", d.ToString());
 	}
 
 	[Fact]
 	public void State()
 	{
 		Assert.Equal(ResultState.Success, s.State);
-		Assert.Equal(ResultState.Failure, f.State);
-		Assert.Equal(ResultState.Failure, d.State);
+		Assert.Equal(ResultState.Error, f.State);
+		Assert.Equal(ResultState.Error, d.State);
 	}
 
 	[Fact]
@@ -91,11 +91,11 @@ public class Tests
 	}
 
 	[Fact]
-	public void IsFailure()
+	public void IsError()
 	{
-		Assert.False(s.IsFailure);
-		Assert.True(f.IsFailure);
-		Assert.True(d.IsFailure);
+		Assert.False(s.IsError);
+		Assert.True(f.IsError);
+		Assert.True(d.IsError);
 	}
 
 	[Fact]
@@ -110,14 +110,14 @@ public class Tests
 	}
 
 	[Fact]
-	public void Failure()
+	public void Error()
 	{
-		ref readonly var r = ref f.Failure;
+		ref readonly var r = ref f.Error;
 
-		Assert.Throws<InvalidOperationException>(() => s.Failure);
+		Assert.Throws<InvalidOperationException>(() => s.Error);
 		Assert.True(r == "Bad");
-		Assert.True(f.Failure == "Bad");
-		Assert.True(d.Failure is null);
+		Assert.True(f.Error == "Bad");
+		Assert.True(d.Error is null);
 	}
 
 	[Fact]
@@ -133,15 +133,15 @@ public class Tests
 	}
 
 	[Fact]
-	public void GetFailureOrDefault()
+	public void GetErrorOrDefault()
 	{
-		Assert.True(s.GetFailureOrDefault() is null);
-		Assert.True(f.GetFailureOrDefault() == "Bad");
-		Assert.True(d.GetFailureOrDefault() is null);
+		Assert.True(s.GetErrorOrDefault() is null);
+		Assert.True(f.GetErrorOrDefault() == "Bad");
+		Assert.True(d.GetErrorOrDefault() is null);
 
-		Assert.True(s.GetFailureOrDefault("Worse") == "Worse");
-		Assert.True(f.GetFailureOrDefault("Worse") == "Bad");
-		Assert.True(d.GetFailureOrDefault("Worse") is null);
+		Assert.True(s.GetErrorOrDefault("Worse") == "Worse");
+		Assert.True(f.GetErrorOrDefault("Worse") == "Bad");
+		Assert.True(d.GetErrorOrDefault("Worse") is null);
 	}
 
 	[Fact]
@@ -157,11 +157,11 @@ public class Tests
 	}
 
 	[Fact]
-	public void TryGetFailure()
+	public void TryGetError()
 	{
-		Assert.True(s.TryGetFailure(out var o1) == false && o1 is null);
-		Assert.True(f.TryGetFailure(out var o2) == true && o2 == "Bad");
-		Assert.True(d.TryGetFailure(out var o3) == true && o3 is null);
+		Assert.True(s.TryGetError(out var o1) == false && o1 is null);
+		Assert.True(f.TryGetError(out var o2) == true && o2 == "Bad");
+		Assert.True(d.TryGetError(out var o3) == true && o3 is null);
 	}
 
 	[Fact]
@@ -173,11 +173,11 @@ public class Tests
 	}
 
 	[Fact]
-	public void GetFailureRefOrDefaultRef()
+	public void GetErrorRefOrDefaultRef()
 	{
-		Assert.True(Result.GetFailureRefOrDefaultRef(ref s) is null);
-		Assert.True(Result.GetFailureRefOrDefaultRef(ref f) == "Bad");
-		Assert.True(Result.GetFailureRefOrDefaultRef(ref d) is null);
+		Assert.True(Result.GetErrorRefOrDefaultRef(ref s) is null);
+		Assert.True(Result.GetErrorRefOrDefaultRef(ref f) == "Bad");
+		Assert.True(Result.GetErrorRefOrDefaultRef(ref d) is null);
 	}
 
 	[Fact]
@@ -186,8 +186,8 @@ public class Tests
 		Result<int, string> three = 3; // Success
 		Result<int, string> four = 4; // Success
 
-		Result<int, string> cat = "Cat"; // Failure
-		Result<int, string> dog = "Dog"; // Failure
+		Result<int, string> cat = "Cat"; // Error
+		Result<int, string> dog = "Dog"; // Error
 
 		Assert.True(three.CompareTo(four) < 0);
 		Assert.True(three.CompareTo(three) == 0);
@@ -212,28 +212,28 @@ public class Tests
 	public void GetUnderlyingType()
 	{
 		Assert.Equal(typeof(int), Result.GetUnderlyingValueType(typeof(Result<int, string>)));
-		Assert.Equal(typeof(string), Result.GetUnderlyingFailureType(typeof(Result<int, string>)));
+		Assert.Equal(typeof(string), Result.GetUnderlyingErrorType(typeof(Result<int, string>)));
 
 		Assert.Null(Result.GetUnderlyingValueType(typeof(Result)));
-		Assert.Null(Result.GetUnderlyingFailureType(typeof(Result)));
+		Assert.Null(Result.GetUnderlyingErrorType(typeof(Result)));
 
 		Assert.Null(Result.GetUnderlyingValueType(typeof(Result<,>)));
-		Assert.Null(Result.GetUnderlyingFailureType(typeof(Result<,>)));
+		Assert.Null(Result.GetUnderlyingErrorType(typeof(Result<,>)));
 
 		Assert.Null(Result.GetUnderlyingValueType(typeof(DateTime)));
-		Assert.Null(Result.GetUnderlyingFailureType(typeof(DateTime)));
+		Assert.Null(Result.GetUnderlyingErrorType(typeof(DateTime)));
 
 		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingValueType(null!));
-		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingFailureType(null!));
+		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingErrorType(null!));
 	}
 
 	[Fact]
 	public void ResultStateBinaryProperties()
 	{
 		var s = ResultState.Success;
-		var f = ResultState.Failure;
+		var f = ResultState.Error;
 
-		Assert.True(ResultState.Failure == default(ResultState));
+		Assert.True(ResultState.Error == default(ResultState));
 		Assert.True(Unsafe.SizeOf<ResultState>() == Unsafe.SizeOf<bool>());
 		Assert.True(Unsafe.As<ResultState, bool>(ref s) == true);
 		Assert.True(Unsafe.As<ResultState, bool>(ref f) == false);
