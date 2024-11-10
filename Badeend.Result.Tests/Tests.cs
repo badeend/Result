@@ -196,4 +196,23 @@ public class Tests
 
 		Assert.Equal([three, four, cat, dog], ordered);
 	}
+
+	[Fact]
+	public void GetUnderlyingType()
+	{
+		Assert.Equal(typeof(int), Result.GetUnderlyingValueType(typeof(Result<int, string>)));
+		Assert.Equal(typeof(string), Result.GetUnderlyingFailureType(typeof(Result<int, string>)));
+
+		Assert.Null(Result.GetUnderlyingValueType(typeof(Result)));
+		Assert.Null(Result.GetUnderlyingFailureType(typeof(Result)));
+
+		Assert.Null(Result.GetUnderlyingValueType(typeof(Result<,>)));
+		Assert.Null(Result.GetUnderlyingFailureType(typeof(Result<,>)));
+
+		Assert.Null(Result.GetUnderlyingValueType(typeof(DateTime)));
+		Assert.Null(Result.GetUnderlyingFailureType(typeof(DateTime)));
+
+		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingValueType(null!));
+		Assert.Throws<ArgumentNullException>(() => Result.GetUnderlyingFailureType(null!));
+	}
 }

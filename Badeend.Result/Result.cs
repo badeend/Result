@@ -58,6 +58,43 @@ public static class Result
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static ref readonly TFailure GetFailureRefOrDefaultRef<TValue, TFailure>(ref readonly Result<TValue, TFailure> result) => ref result.failure;
+
+	/// <summary>
+	/// Returns the underlying <c>TValue</c> type argument of the provided
+	/// result type. Returns <c>null</c> if <paramref name="resultType"/> is not
+	/// a closed generic result type.
+	/// </summary>
+	/// <exception cref="ArgumentNullException">
+	/// <paramref name="resultType"/> is <c>null</c>.
+	/// </exception>
+	public static Type? GetUnderlyingValueType(Type resultType) => GetTypeArgument(resultType, 0);
+
+	/// <summary>
+	/// Returns the underlying <c>TFailure</c> type argument of the provided
+	/// result type. Returns <c>null</c> if <paramref name="resultType"/> is not
+	/// a closed generic result type.
+	/// </summary>
+	/// <exception cref="ArgumentNullException">
+	/// <paramref name="resultType"/> is <c>null</c>.
+	/// </exception>
+	public static Type? GetUnderlyingFailureType(Type resultType) => GetTypeArgument(resultType, 1);
+
+	private static Type? GetTypeArgument(Type resultType, int index)
+	{
+		if (resultType is null)
+		{
+			throw new ArgumentNullException(nameof(resultType));
+		}
+
+		if (resultType.IsGenericType
+			&& !resultType.IsGenericTypeDefinition
+			&& resultType.GetGenericTypeDefinition() == typeof(Result<,>))
+		{
+			return resultType.GetGenericArguments()[index];
+		}
+
+		return null;
+	}
 }
 
 /// <summary>
