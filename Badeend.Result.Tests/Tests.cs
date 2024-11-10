@@ -101,6 +101,9 @@ public class Tests
 	[Fact]
 	public void Value()
 	{
+		ref readonly var r = ref s.Value;
+
+		Assert.True(r == 42);
 		Assert.True(s.Value == 42);
 		Assert.Throws<InvalidOperationException>(() => f.Value);
 		Assert.Throws<InvalidOperationException>(() => d.Value);
@@ -109,7 +112,10 @@ public class Tests
 	[Fact]
 	public void Failure()
 	{
+		ref readonly var r = ref f.Failure;
+
 		Assert.Throws<InvalidOperationException>(() => s.Failure);
+		Assert.True(r == "Bad");
 		Assert.True(f.Failure == "Bad");
 		Assert.True(d.Failure is null);
 	}

@@ -195,7 +195,8 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	/// Get the success value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation was not successful.</exception>
-	public TValue Value
+	[UnscopedRef]
+	public ref readonly TValue Value
 	{
 		get
 		{
@@ -205,7 +206,7 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 				this.ThrowNotSuccessfulException();
 			}
 
-			return this.value;
+			return ref this.value;
 		}
 	}
 
@@ -219,7 +220,8 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	/// Get the failure value.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The operation did not fail.</exception>
-	public TFailure Failure
+	[UnscopedRef]
+	public ref readonly TFailure Failure
 	{
 		get
 		{
@@ -229,7 +231,7 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 				this.ThrowSuccessfulException();
 			}
 
-			return this.failure;
+			return ref this.failure;
 		}
 	}
 
