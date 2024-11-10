@@ -143,6 +143,10 @@ public class Tests
 		Assert.True(s.TryGetValue(out var o1) == true && o1 == 42);
 		Assert.True(f.TryGetValue(out var o2) == false && o2 == 0);
 		Assert.True(d.TryGetValue(out var o3) == false && o3 == 0);
+
+		Assert.True(s.TryGetValue(out var s1, out var f1) == true && s1 == 42 && f1 is null);
+		Assert.True(f.TryGetValue(out var s2, out var f2) == false && s2 == 0 && f2 == "Bad");
+		Assert.True(d.TryGetValue(out var s3, out var f3) == false && s3 == 0 && f3 is null);
 	}
 
 	[Fact]

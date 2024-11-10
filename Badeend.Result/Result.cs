@@ -124,7 +124,7 @@ public static class Result
 /// Or alternatively using
 /// <see cref="IsSuccess"><c>IsSuccess</c></see>,
 /// <see cref="IsFailure"><c>IsFailure</c></see>,
-/// <see cref="TryGetValue"><c>TryGetValue</c></see>,
+/// <see cref="TryGetValue(out TValue)"><c>TryGetValue</c></see>,
 /// <see cref="TryGetFailure"><c>TryGetFailure</c></see>,
 /// <see cref="GetValueOrDefault()"><c>GetValueOrDefault</c></see> or
 /// <see cref="GetFailureOrDefault()"><c>GetFailureOrDefault</c></see>.
@@ -257,6 +257,19 @@ public readonly struct Result<TValue, TFailure> : IEquatable<Result<TValue, TFai
 	public bool TryGetValue([MaybeNullWhen(false)] out TValue value)
 	{
 		value = this.value;
+		return this.isSuccess;
+	}
+
+	/// <summary>
+	/// Attempt to store the operation's success value in <paramref name="value"/>.
+	/// If the operation failed, this method returns <see langword="false"/>
+	/// and the error is stored in <paramref name="failure"/>.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool TryGetValue([MaybeNullWhen(false)] out TValue value, [MaybeNullWhen(true)] out TFailure failure)
+	{
+		value = this.value;
+		failure = this.failure;
 		return this.isSuccess;
 	}
 
