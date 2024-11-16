@@ -70,15 +70,15 @@ public class Result1Tests
 
 		Assert.True(s.GetHashCode() == 42.GetHashCode());
 		Assert.True(f.GetHashCode() == SomeError.GetHashCode());
-		Assert.True(d.GetHashCode() == 0);
+		Assert.True(d.GetHashCode() == default(Error).GetHashCode());
 	}
 
 	[Fact]
 	public void ObjectToString()
 	{
 		Assert.Equal("Success(42)", s.ToString());
-		Assert.Equal("Error(Bad)", f.ToString());
-		Assert.Equal("Error(null)", d.ToString());
+		Assert.Equal("Error(Error: Bad)", f.ToString());
+		Assert.Equal("Error(Error: Operation did not complete successfully)", d.ToString());
 	}
 
 	[Fact]

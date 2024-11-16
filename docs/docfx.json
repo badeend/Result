@@ -2,12 +2,13 @@
   "metadata": [
     {
       "properties": {
-        "TargetFramework": "net8.0"
+        "TargetFramework": "netstandard2.0"
       },
       "src": [
         {
           "src": "..",
           "files": [
+            "Badeend.Error/Badeend.Error.csproj",
             "Badeend.Result/Badeend.Result.csproj"
           ]
         }

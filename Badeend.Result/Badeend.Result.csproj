@@ -4,4 +4,7 @@
     <Description>For failures that are not exceptional: `Result&lt;T,E&gt;` for C#.</Description>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Badeend.Error\Badeend.Error.csproj" />
+  </ItemGroup>
 </Project>

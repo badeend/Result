@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Badeend.Result", "Badeend.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Badeend.Result.Tests", "Badeend.Result.Tests\Badeend.Result.Tests.csproj", "{25DA6479-2CAA-4517-B31A-CE5D86FDAA9F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Badeend.Error", "Badeend.Error\Badeend.Error.csproj", "{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{25DA6479-2CAA-4517-B31A-CE5D86FDAA9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25DA6479-2CAA-4517-B31A-CE5D86FDAA9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25DA6479-2CAA-4517-B31A-CE5D86FDAA9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
