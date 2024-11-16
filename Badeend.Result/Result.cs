@@ -27,13 +27,6 @@ public static class Result
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static Result<TValue> Error<TValue>() => default(Error);
-
-	/// <summary>
-	/// Create a failed standard result.
-	/// </summary>
-	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static Result<TValue> Error<TValue>(Error error) => error;
 
 	/// <summary>
