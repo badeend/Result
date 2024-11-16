@@ -117,6 +117,15 @@ public class Result1Tests
 	}
 
 	[Fact]
+	public void ValueInnerException()
+	{
+		Result<int> e1 = new Error("My message");
+		var e1Exception = Assert.Throws<InvalidOperationException>(() => e1.Value);
+		Assert.Equal("Operation was not successful. See inner exception for more details.", e1Exception.Message);
+		Assert.Equal("My message", e1Exception.InnerException!.Message);
+	}
+
+	[Fact]
 	public void Error()
 	{
 		ref readonly var r = ref f.Error;

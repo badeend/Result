@@ -113,6 +113,30 @@ public class Result2Tests
 	}
 
 	[Fact]
+	public void ValueInnerException()
+	{
+		Result<int, Error> e1 = new Error("My message");
+		var e1Exception = Assert.Throws<InvalidOperationException>(() => e1.Value);
+		Assert.Equal("Operation was not successful. See inner exception for more details.", e1Exception.Message);
+		Assert.Equal("My message", e1Exception.InnerException!.Message);
+
+		Result<int, object> e2 = (object)new Error("My message");
+		var e2Exception = Assert.Throws<InvalidOperationException>(() => e2.Value);
+		Assert.Equal("Operation was not successful.", e2Exception.Message);
+		Assert.Null(e2Exception.InnerException);
+
+		Result<int, ArgumentException> e3 = new ArgumentException("My message");
+		var e3Exception = Assert.Throws<InvalidOperationException>(() => e3.Value);
+		Assert.Equal("Operation was not successful. See inner exception for more details.", e3Exception.Message);
+		Assert.Equal("My message", e3Exception.InnerException!.Message);
+
+		Result<int, object> e4 = (object)new ArgumentException("My message");
+		var e4Exception = Assert.Throws<InvalidOperationException>(() => e4.Value);
+		Assert.Equal("Operation was not successful.", e4Exception.Message);
+		Assert.Null(e4Exception.InnerException);
+	}
+
+	[Fact]
 	public void Error()
 	{
 		ref readonly var r = ref f.Error;

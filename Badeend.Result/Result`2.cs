@@ -117,7 +117,25 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	[DoesNotReturn]
 	private void ThrowNotSuccessfulException()
 	{
-		throw new InvalidOperationException("Operation was not successful.", this.error as Exception);
+		Exception? innerException = null;
+
+		if (typeof(TError) == typeof(Error))
+		{
+			innerException = (this.error as Error?)?.AsException();
+		}
+		else if (typeof(Exception).IsAssignableFrom(typeof(TError)))
+		{
+			innerException = this.error as Exception;
+		}
+
+		if (innerException is not null)
+		{
+			throw new InvalidOperationException("Operation was not successful. See inner exception for more details.", innerException);
+		}
+		else
+		{
+			throw new InvalidOperationException("Operation was not successful.");
+		}
 	}
 
 	/// <summary>
