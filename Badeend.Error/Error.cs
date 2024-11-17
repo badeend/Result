@@ -117,7 +117,7 @@ public readonly struct Error : IEquatable<Error>
 	public Error? InnerError => this.obj switch
 	{
 		FatError f => f.InnerError,
-		Exception { InnerException: { } i } => new Error(i),
+		Exception { InnerException: { } innerException } => new Error(innerException),
 		_ => null,
 	};
 
@@ -149,9 +149,16 @@ public readonly struct Error : IEquatable<Error>
 	/// Create a new <see cref="Error"/> from the provided <paramref name="exception"/>.
 	/// </summary>
 	/// <remarks>
-	/// This is functionally equivalent to <c>new Error(message: ex.Message, data: ex)</c>,
-	/// but with the additional guarantee that this overload is an <c>O(1)</c>
-	/// operation and does not allocate any memory.
+	/// If the provided <paramref name="exception"/> was obtained through
+	/// <see cref="AsException"/>, the original Error is returned to prevent
+	/// double wrapping.
+	///
+	/// Otherwise, this is functionally equivalent to creating an Error with:
+	/// <list type="bullet">
+	///   <item>the <see cref="Message"/> set to the exception's <see cref="Exception.Message"/>,</item>
+	///   <item>the <see cref="Data"/> set to the exception itself</item>
+	///   <item>the <see cref="InnerError"/> set to the exception's <see cref="Exception.InnerException"/> that has been recursively converted using the preceding logic.</item>
+	/// </list>
 	/// </remarks>
 	[Pure]
 	public Error(Exception? exception)

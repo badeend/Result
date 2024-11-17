@@ -151,6 +151,32 @@ public class ErrorTests
 	}
 
 	[Fact]
+	public void AsExceptionReturnsOriginalException()
+	{
+		var x1 = new Exception("My inner message");
+		var x2 = new Exception("My message", x1);
+
+		var e = new Error(x2);
+
+		Assert.True(object.ReferenceEquals(e.AsException(), x2));
+		Assert.True(object.ReferenceEquals(e.InnerError!.Value.AsException(), x1));
+	}
+
+	[Fact]
+	public void ExceptionConstructorUnwrapsError()
+	{
+		var e1 = new Error("My inner message");
+		var e2 = new Error("My message", e1);
+
+		var w1 = new Error(e1.AsException());
+		var w2 = new Error(e2.AsException());
+
+		Assert.True(w1 == e1);
+		Assert.True(w2 == e2);
+		Assert.True(w2.InnerError == e1);
+	}
+
+	[Fact]
 	public void _ToString()
 	{
 		AssertEqual(a, """
