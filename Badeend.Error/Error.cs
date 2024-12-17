@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Badeend.Errors;
 
 namespace Badeend;
 
@@ -19,18 +20,18 @@ namespace Badeend;
 /// This Error type is designed to be a close relative to the built-in Exception
 /// class, but with a focus on being lightweight and suitable for situations where
 /// errors need to be reported frequently and/or where performance is critical.
-/// The most commonly used constructor (<c><see cref="Error(string?)"/></c>) is
-/// even allocation free.
+/// The most commonly used constructors (e.g. <c><see cref="Error(string?)"/></c>)
+/// are even allocation free.
 ///
 /// This type has the size of a single machine word (4 or 8 bytes), making
 /// it a good fit for applications where errors are treated as first-class
-/// values, are copied frequently and/or are propagated through regular control
+/// values, are copied frequently and are propagated through regular control
 /// flow patterns instead of stack unwinding.
 ///
 /// This type does not collect stack traces <i>by design</i>. Any additional
 /// context that you want to attach along the way must be added manually by
 /// wrapping it inside a new error using one of constructors that take an
-/// <c>InnerError</c> parameter, e.g. <c><see cref="Error(string?,object?,Error)"/></c>.
+/// <c>InnerError</c> parameter, e.g. <c><see cref="Error(string?,object?,Error?)"/></c>.
 ///
 /// The <c>default</c> Error contains only a predefined default message and is
 /// equivalent to using the <see cref="Error()">parameterless constructor</see>.
@@ -47,15 +48,10 @@ public readonly struct Error : IEquatable<Error>
 	/// Is one of the following:
 	/// - `null`:      Empty error (`default`).
 	/// - `string`:    Message-only error.
+	/// - `IError`:    Error created through the special constructor.
 	/// - `Exception`: Error created through the special constructor. The exception instance acts as both `Data` and a `Message`. The InnerException is the InnerError.
-	/// - `FatError`:  Any kind of error.
 	/// </summary>
 	private readonly object? obj;
-
-	private sealed record FatError(
-		string? Message,
-		object? Data,
-		Error? InnerError);
 
 	/// <summary>
 	/// Human-readable description of the error.
@@ -71,7 +67,7 @@ public readonly struct Error : IEquatable<Error>
 	public string Message => this.obj switch
 	{
 		string s => s,
-		FatError f => f.Message ?? DefaultErrorMessage,
+		IError e => e.Message ?? DefaultErrorMessage,
 		Exception e => e.Message ?? DefaultExceptionMessage,
 		_ => DefaultErrorMessage,
 	};
@@ -91,7 +87,7 @@ public readonly struct Error : IEquatable<Error>
 	[Pure]
 	public object? Data => this.obj switch
 	{
-		FatError f => f.Data,
+		IError e => e.Data,
 		Exception e => e,
 		_ => null,
 	};
@@ -103,7 +99,7 @@ public readonly struct Error : IEquatable<Error>
 	/// <remarks>
 	/// This property is similar to the <c>InnerException</c> property of
 	/// regular .NET exceptions. When a new <see cref="Error"/> is created by
-	/// using e.g. <see cref="Error(string?, object?, Error)"/>, the pre-existing
+	/// using e.g. <see cref="Error(string?, object?, Error?)"/>, the pre-existing
 	/// <see cref="Error"/> instance becomes the <c>InnerError</c> of the new
 	/// instance. This chaining allows for capturing contextual information at
 	/// each layer where the error is encountered, while retaining the original
@@ -116,7 +112,7 @@ public readonly struct Error : IEquatable<Error>
 	[Pure]
 	public Error? InnerError => this.obj switch
 	{
-		FatError f => f.InnerError,
+		IError e => e.InnerError,
 		Exception { InnerException: { } innerException } => new Error(innerException),
 		_ => null,
 	};
@@ -143,6 +139,20 @@ public readonly struct Error : IEquatable<Error>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Error()
 	{
+	}
+
+	/// <summary>
+	/// Create a new <see cref="Error"/> using the provided <paramref name="error"/>
+	/// as the backing implementation.
+	/// </summary>
+	/// <remarks>
+	/// This is an <c>O(1)</c> operation and does not allocate any memory.
+	/// </remarks>
+	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public Error(IError? error)
+	{
+		this.obj = error;
 	}
 
 	/// <summary>
@@ -191,19 +201,6 @@ public readonly struct Error : IEquatable<Error>
 	/// that wraps the <paramref name="innerError"/>.
 	/// </summary>
 	[Pure]
-	public Error(string? message, Error innerError)
-	{
-		this.obj = new FatError(
-			Message: message,
-			Data: null,
-			InnerError: innerError);
-	}
-
-	/// <summary>
-	/// Create a new <see cref="Error"/> with the provided <paramref name="message"/>
-	/// that wraps the <paramref name="innerError"/>.
-	/// </summary>
-	[Pure]
 	public Error(string? message, Error? innerError)
 	{
 		if (innerError is null)
@@ -212,24 +209,13 @@ public readonly struct Error : IEquatable<Error>
 		}
 		else
 		{
-			this.obj = new FatError(
-				Message: message,
-				Data: null,
-				InnerError: innerError);
+			this.obj = new FatError
+			{
+				Message = message,
+				Data = null,
+				InnerError = innerError,
+			};
 		}
-	}
-
-	/// <summary>
-	/// Create a new <see cref="Error"/> with the provided <paramref name="message"/>
-	/// and/or <paramref name="data"/> that wraps the <paramref name="innerError"/>.
-	/// </summary>
-	[Pure]
-	public Error(string? message, object? data, Error innerError)
-	{
-		this.obj = new FatError(
-			Message: message,
-			Data: data,
-			InnerError: innerError);
 	}
 
 	/// <summary>
@@ -245,10 +231,12 @@ public readonly struct Error : IEquatable<Error>
 		}
 		else
 		{
-			this.obj = new FatError(
-				Message: message,
-				Data: data,
-				InnerError: innerError);
+			this.obj = new FatError
+			{
+				Message = message,
+				Data = data,
+				InnerError = innerError,
+			};
 		}
 	}
 
@@ -339,9 +327,24 @@ public readonly struct Error : IEquatable<Error>
 			result.Append(": ");
 			result.Append(message);
 		}
+		else if (this.obj is SpecialError specialError)
+		{
+			specialError.SerializeInto(result);
+		}
 		else
 		{
-			result.Append(MessagePrefix);
+			if (this.obj is IError ierror)
+			{
+				var className = ierror.GetType().ToString();
+
+				result.Append(className);
+				result.Append(": ");
+			}
+			else
+			{
+				result.Append(MessagePrefix);
+			}
+
 			result.Append(message);
 
 			if (data is not null)
@@ -453,4 +456,33 @@ public readonly struct Error : IEquatable<Error>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool operator !=(Error left, Error right) => !left.Equals(right);
+
+	private abstract class SpecialError
+	{
+		internal abstract void SerializeInto(StringBuilder output);
+	}
+
+	private sealed class FatError : SpecialError, IError
+	{
+#pragma warning disable CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
+		public required string? Message { get; init; }
+#pragma warning restore CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
+
+		public required object? Data { get; init; }
+
+		public required Error? InnerError { get; init; }
+
+		internal override void SerializeInto(StringBuilder output)
+		{
+			output.Append(MessagePrefix);
+			output.Append(this.Message ?? DefaultErrorMessage);
+
+			if (this.Data is not null)
+			{
+				output.AppendLine();
+				output.Append("Data: ");
+				output.Append(DataToString(this.Data));
+			}
+		}
+	}
 }

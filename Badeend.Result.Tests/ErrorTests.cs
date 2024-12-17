@@ -9,21 +9,25 @@ namespace Badeend.Tests;
 
 public class ErrorTests
 {
+	private sealed record MyCustomError(string Message, object? Data = null, Error? InnerError = null) : Badeend.Errors.IError;
+
 	private readonly static Error a = new();
 	private readonly static Error b = new(message: null);
 	private readonly static Error c = new("My message");
 	private readonly static Error d = new("My message", innerError: new Error("My inner message"));
 	private readonly static Error e = new("My message", innerError: null);
-	private readonly static Error f = new("My message", innerError: (Error?)new Error("My inner message"));
 	private readonly static Error g = new("My message", null, innerError: new Error("My inner message"));
 	private readonly static Error h = new("My message", null, innerError: null);
-	private readonly static Error i = new("My message", null, innerError: (Error?)new Error("My inner message"));
 	private readonly static Error j = new("My message", 42, innerError: new Error("My inner message"));
 	private readonly static Error k = new("My message", 42, innerError: null);
-	private readonly static Error l = new("My message", 42, innerError: (Error?)new Error("My inner message"));
 	private readonly static Error m = new(exception: null);
 	private readonly static Error n = new(new Exception("My message"));
 	private readonly static Error o = new(new Exception("My message", new Exception("My inner message")));
+	private readonly static Error p = new(new MyCustomError(Message: null!));
+	private readonly static Error q = new(new MyCustomError("My message"));
+	private readonly static Error r = new(new MyCustomError("My message", InnerError: new Error("My inner message")));
+	private readonly static Error s = new(new MyCustomError("My message", Data: 42));
+	private readonly static Error t = new(new MyCustomError("My message", Data: 42, InnerError: new Error("My inner message")));
 
 	[Fact]
 	public void InnerError()
@@ -34,22 +38,23 @@ public class ErrorTests
 		Assert.NotNull(d.InnerError);
 		Assert.Null(d.InnerError.Value.InnerError);
 		Assert.Null(e.InnerError);
-		Assert.NotNull(f.InnerError);
-		Assert.Null(f.InnerError.Value.InnerError);
 		Assert.NotNull(g.InnerError);
 		Assert.Null(g.InnerError.Value.InnerError);
 		Assert.Null(h.InnerError);
-		Assert.NotNull(i.InnerError);
-		Assert.Null(i.InnerError.Value.InnerError);
 		Assert.NotNull(j.InnerError);
 		Assert.Null(j.InnerError.Value.InnerError);
 		Assert.Null(k.InnerError);
-		Assert.NotNull(l.InnerError);
-		Assert.Null(l.InnerError.Value.InnerError);
 		Assert.Null(m.InnerError);
 		Assert.Null(n.InnerError);
 		Assert.NotNull(o.InnerError);
 		Assert.Null(o.InnerError.Value.InnerError);
+		Assert.Null(p.InnerError);
+		Assert.Null(q.InnerError);
+		Assert.NotNull(r.InnerError);
+		Assert.Null(r.InnerError.Value.InnerError);
+		Assert.Null(s.InnerError);
+		Assert.NotNull(t.InnerError);
+		Assert.Null(t.InnerError.Value.InnerError);
 	}
 
 	[Fact]
@@ -61,22 +66,23 @@ public class ErrorTests
 		Assert.Equal("My message", d.Message);
 		Assert.Equal("My inner message", d.InnerError?.Message);
 		Assert.Equal("My message", e.Message);
-		Assert.Equal("My message", f.Message);
-		Assert.Equal("My inner message", f.InnerError?.Message);
 		Assert.Equal("My message", g.Message);
 		Assert.Equal("My inner message", g.InnerError?.Message);
 		Assert.Equal("My message", h.Message);
-		Assert.Equal("My message", i.Message);
-		Assert.Equal("My inner message", i.InnerError?.Message);
 		Assert.Equal("My message", j.Message);
 		Assert.Equal("My inner message", j.InnerError?.Message);
 		Assert.Equal("My message", k.Message);
-		Assert.Equal("My message", l.Message);
-		Assert.Equal("My inner message", l.InnerError?.Message);
 		Assert.Equal("Operation did not complete successfully", m.Message);
 		Assert.Equal("My message", n.Message);
 		Assert.Equal("My message", o.Message);
 		Assert.Equal("My inner message", o.InnerError?.Message);
+		Assert.Equal("Operation did not complete successfully", p.Message);
+		Assert.Equal("My message", q.Message);
+		Assert.Equal("My message", r.Message);
+		Assert.Equal("My inner message", r.InnerError?.Message);
+		Assert.Equal("My message", s.Message);
+		Assert.Equal("My message", t.Message);
+		Assert.Equal("My inner message", t.InnerError?.Message);
 	}
 
 	[Fact]
@@ -87,18 +93,20 @@ public class ErrorTests
 		Assert.Null(c.Data);
 		Assert.Null(d.Data);
 		Assert.Null(e.Data);
-		Assert.Null(f.Data);
 		Assert.Null(g.Data);
 		Assert.Null(h.Data);
-		Assert.Null(i.Data);
 		Assert.Equal(42, (int)j.Data!);
 		Assert.Equal(42, (int)k.Data!);
-		Assert.Equal(42, (int)l.Data!);
 		Assert.Null(m.Data);
 		Assert.True(n.Data is Exception);
 		Assert.True(o.Data is Exception);
 		Assert.True(o.InnerError?.Data is Exception);
 		Assert.True(((Exception)o.Data).InnerException == (Exception)o.InnerError?.Data!);
+		Assert.Null(p.Data);
+		Assert.Null(q.Data);
+		Assert.Null(r.Data);
+		Assert.Equal(42, (int)s.Data!);
+		Assert.Equal(42, (int)t.Data!);
 	}
 
 	[Fact]
@@ -138,16 +146,18 @@ public class ErrorTests
 		Assert.True(c.AsException() is { Message: "My message", InnerException: null });
 		Assert.True(d.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
 		Assert.True(e.AsException() is { Message: "My message", InnerException: null });
-		Assert.True(f.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
 		Assert.True(g.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
 		Assert.True(h.AsException() is { Message: "My message", InnerException: null });
-		Assert.True(i.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
 		Assert.True(j.AsException() is { Message: var m1, InnerException: { Message: "My inner message", InnerException: null } } && m1 == $"My message{Environment.NewLine}Data: 42");
 		Assert.True(k.AsException() is { Message: var m2, InnerException: null } && m2 == $"My message{Environment.NewLine}Data: 42");
-		Assert.True(l.AsException() is { Message: var m3, InnerException: { Message: "My inner message", InnerException: null } } && m3 == $"My message{Environment.NewLine}Data: 42");
 		Assert.True(m.AsException() is { Message: "Operation did not complete successfully", InnerException: null });
 		Assert.True(n.AsException() is { Message: "My message", InnerException: null });
 		Assert.True(o.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
+		Assert.True(p.AsException() is { Message: "Operation did not complete successfully", InnerException: null });
+		Assert.True(q.AsException() is { Message: "My message", InnerException: null });
+		Assert.True(r.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
+		Assert.True(s.AsException() is { Message: var m3, InnerException: null } && m3 == $"My message{Environment.NewLine}Data: 42");
+		Assert.True(t.AsException() is { Message: var m4, InnerException: { Message: "My inner message", InnerException: null } } && m4 == $"My message{Environment.NewLine}Data: 42");
 	}
 
 	[Fact]
@@ -197,12 +207,6 @@ public class ErrorTests
 		AssertEqual(e, """
 		Error: My message
 		""");
-		AssertEqual(f, """
-		Error: My message
-
-		--- Caused by: ---
-		Error: My inner message
-		""");
 		AssertEqual(g, """
 		Error: My message
 
@@ -211,12 +215,6 @@ public class ErrorTests
 		""");
 		AssertEqual(h, """
 		Error: My message
-		""");
-		AssertEqual(i, """
-		Error: My message
-
-		--- Caused by: ---
-		Error: My inner message
 		""");
 		AssertEqual(j, """
 		Error: My message
@@ -229,13 +227,6 @@ public class ErrorTests
 		Error: My message
 		Data: 42
 		""");
-		AssertEqual(l, """
-		Error: My message
-		Data: 42
-
-		--- Caused by: ---
-		Error: My inner message
-		""");
 		AssertEqual(m, """
 		Error: Operation did not complete successfully
 		""");
@@ -247,6 +238,29 @@ public class ErrorTests
 
 		--- Caused by: ---
 		System.Exception: My inner message
+		""");
+		AssertEqual(p, """
+		Badeend.Tests.ErrorTests+MyCustomError: Operation did not complete successfully
+		""");
+		AssertEqual(q, """
+		Badeend.Tests.ErrorTests+MyCustomError: My message
+		""");
+		AssertEqual(r, """
+		Badeend.Tests.ErrorTests+MyCustomError: My message
+
+		--- Caused by: ---
+		Error: My inner message
+		""");
+		AssertEqual(s, """
+		Badeend.Tests.ErrorTests+MyCustomError: My message
+		Data: 42
+		""");
+		AssertEqual(t, """
+		Badeend.Tests.ErrorTests+MyCustomError: My message
+		Data: 42
+
+		--- Caused by: ---
+		Error: My inner message
 		""");
 
 		static void AssertEqual(Error error, string expected)
@@ -275,16 +289,18 @@ public class ErrorTests
 		AssertEqual(c, messageError);
 		AssertEqual(d, messageAndInnerErrorError);
 		AssertEqual(e, messageError);
-		AssertEqual(f, messageAndInnerErrorError);
 		AssertEqual(g, messageAndInnerErrorError);
 		AssertEqual(h, messageError);
-		AssertEqual(i, messageAndInnerErrorError);
 		AssertEqual(j, messageAndDataAndInnerErrorError);
 		AssertEqual(k, messageAndDataError);
-		AssertEqual(l, messageAndDataAndInnerErrorError);
 		AssertEqual(m, defaultError);
 		AssertNotEqual(n, messageError); // Equality should include the exception.
 		AssertNotEqual(o, messageAndInnerErrorError); // Equality should include the exception.
+		AssertEqual(p, defaultError);
+		AssertEqual(q, messageError);
+		AssertEqual(r, messageAndInnerErrorError);
+		AssertEqual(s, messageAndDataError);
+		AssertEqual(t, messageAndDataAndInnerErrorError);
 
 		static void AssertEqual(Error left, Error right)
 		{
@@ -316,6 +332,7 @@ public class ErrorTests
 
 		var someString = "My message";
 		var someException = new Exception("My message");
+		var someIError = new MyCustomError("My message");
 
 		var before = GC.GetAllocatedBytesForCurrentThread();
 
@@ -333,6 +350,7 @@ public class ErrorTests
 			accumulator += new Error(someString, data: null, innerError: null).Data is null ? 0 : 1;
 			accumulator += new Error(someException).Message.Length;
 			accumulator += new Error(someException).Data is null ? 0 : 1;
+			accumulator += new Error(someIError).Message.Length;
 		}
 
 		var actual = GC.GetAllocatedBytesForCurrentThread() - before;
@@ -344,4 +362,8 @@ public class ErrorTests
 
 		Assert.True(accumulator != 0); // Ensure the operations do not get optimizated away.
 	}
+
+#if NETCOREAPP3_0_OR_GREATER
+	private sealed record DefaultInterfaceImplementations(string Message) : Badeend.Errors.IError;
+#endif
 }
