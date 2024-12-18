@@ -37,7 +37,9 @@ namespace Badeend;
 /// equivalent to using the <see cref="Error()">parameterless constructor</see>.
 /// </remarks>
 [StructLayout(LayoutKind.Auto)]
+#pragma warning disable CA1716 // Identifiers should not match keywords. => Don't care about VB.
 public readonly struct Error : IEquatable<Error>
+#pragma warning restore CA1716 // Identifiers should not match keywords.
 {
 	private const string MessagePrefix = $"Error: ";
 	private const string DefaultErrorMessage = "Operation did not complete successfully";
@@ -256,7 +258,9 @@ public readonly struct Error : IEquatable<Error>
 		Error? current = this;
 		while (current is { Data: var d, InnerError: var inner })
 		{
+#pragma warning disable CA1508 // Avoid dead conditional code. => Analyzer is confused.
 			if (d is T match)
+#pragma warning restore CA1508 // Avoid dead conditional code.
 			{
 				data = match;
 				return true;
@@ -385,6 +389,7 @@ public readonly struct Error : IEquatable<Error>
 
 	internal static string DataToString(object? data)
 	{
+#pragma warning disable CA1031 // Do not catch general exception types.
 		try
 		{
 			return data?.ToString() ?? "null";
@@ -393,6 +398,7 @@ public readonly struct Error : IEquatable<Error>
 		{
 			return "<<.ToString() threw an exception>>";
 		}
+#pragma warning restore CA1031 // Do not catch general exception types.
 	}
 
 	/// <inheritdoc/>
@@ -439,9 +445,9 @@ public readonly struct Error : IEquatable<Error>
 	[Obsolete("Avoid boxing. Use == instead.")]
 	[Browsable(false)]
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public override bool Equals(object? other)
+	public override bool Equals(object? obj)
 	{
-		return other is Error otherError && this.Equals(otherError);
+		return obj is Error otherError && this.Equals(otherError);
 	}
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
 

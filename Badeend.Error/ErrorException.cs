@@ -1,4 +1,6 @@
 #pragma warning disable SA1649 // File name should match first type name
+#pragma warning disable CA1032 // Implement standard exception constructors
+#pragma warning disable CA1064 // Exceptions should be public
 
 global using ErrorException = global::Error;
 
