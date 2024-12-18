@@ -243,6 +243,23 @@ public readonly struct Error : IEquatable<Error>
 	}
 
 	/// <summary>
+	/// Create a new <see cref="Error"/> from the provided enum <paramref name="value"/>.
+	/// </summary>
+	/// <remarks>
+	/// The error message can be customized by declaring an
+	/// <see cref="ErrorMessageAttribute">[ErrorMessage]</see> attribute on the
+	/// enum members.
+	///
+	/// If the value is a regular declared enum member (i.e. it is returned by <c>Enum.GetValues</c>),
+	/// then this is an <c>O(1)</c> operation and does not allocate any memory.
+	/// </remarks>
+	public static Error FromEnum<TEnum>(TEnum value)
+		where TEnum : struct, Enum
+	{
+		return new(EnumError<TEnum>.Create(value));
+	}
+
+	/// <summary>
 	/// Search through the error chain and attempt to retrieve the payload that
 	/// matches the specified type <typeparamref name="T"/>.
 	/// </summary>
@@ -488,6 +505,115 @@ public readonly struct Error : IEquatable<Error>
 				output.AppendLine();
 				output.Append("Data: ");
 				output.Append(DataToString(this.Data));
+			}
+		}
+	}
+
+	private sealed class EnumError<TEnum>(TEnum value, bool isDefined) : SpecialError, IError
+		where TEnum : struct, Enum
+	{
+		private static readonly bool IsFlags = Attribute.IsDefined(typeof(TEnum), typeof(FlagsAttribute), inherit: false);
+		private static readonly Dictionary<TEnum, EnumError<TEnum>> DeclaredErrors = ComputeDeclaredErrors();
+
+		// Beware that these may be accessed from multiple threads:
+		private string? cachedMessage;
+		private object? cachedDataObject;
+
+		public string Message => this.cachedMessage ??= GetCustomMessage(value) ?? DefaultErrorMessage;
+
+		public Error? InnerError => null;
+
+		public object? Data => this.cachedDataObject ??= (object)value;
+
+		internal static EnumError<TEnum> Create(TEnum value)
+		{
+			if (DeclaredErrors.TryGetValue(value, out var existingError))
+			{
+				return existingError;
+			}
+
+			return new(value, isDefined: false);
+		}
+
+		private static Dictionary<TEnum, EnumError<TEnum>> ComputeDeclaredErrors()
+		{
+			var values = GetEnumValues();
+
+			var errors = new Dictionary<TEnum, EnumError<TEnum>>(capacity: values.Length + 1);
+
+			// Always add the default value. This may be overwritten within the loop.
+			errors[default] = new EnumError<TEnum>(default, isDefined: false);
+
+			foreach (var value in values)
+			{
+				errors[value] = new EnumError<TEnum>(value, isDefined: true);
+			}
+
+			return errors;
+		}
+
+		private static string? GetCustomMessage(TEnum value)
+		{
+			var name = GetEnumName(value);
+			if (name is null)
+			{
+				return null;
+			}
+
+			var field = typeof(TEnum).GetField(name);
+			if (field is null)
+			{
+				return null;
+			}
+
+			var attribute = (ErrorMessageAttribute?)Attribute.GetCustomAttribute(field, typeof(ErrorMessageAttribute), inherit: false);
+			if (attribute is null)
+			{
+				return null;
+			}
+
+			return attribute.Message;
+		}
+
+		private static TEnum[] GetEnumValues()
+		{
+#if NET5_0_OR_GREATER
+			return Enum.GetValues<TEnum>();
+#else
+			return (TEnum[])Enum.GetValues(typeof(TEnum));
+#endif
+		}
+
+		private static string? GetEnumName(TEnum value)
+		{
+#if NET5_0_OR_GREATER
+			return Enum.GetName<TEnum>(value);
+#else
+			return Enum.GetName(typeof(TEnum), value);
+#endif
+		}
+
+		internal override void SerializeInto(StringBuilder output)
+		{
+			var name = GetEnumName(value);
+			var useSimpleFormat = name is not null && isDefined && !IsFlags;
+
+			output.Append(typeof(TEnum).ToString());
+
+			if (useSimpleFormat)
+			{
+				output.Append('.');
+				output.Append(name);
+			}
+
+			output.Append(": ");
+			output.Append(this.Message);
+
+			if (!useSimpleFormat)
+			{
+				output.AppendLine();
+				output.Append("Data: ");
+				output.Append(DataToString(value));
 			}
 		}
 	}

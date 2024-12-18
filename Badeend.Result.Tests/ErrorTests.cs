@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Badeend;
+using Badeend.Errors;
 
 namespace Badeend.Tests;
 
@@ -10,6 +11,35 @@ namespace Badeend.Tests;
 public class ErrorTests
 {
 	private sealed record MyCustomError(string Message, object? Data = null, Error? InnerError = null) : Badeend.Errors.IError;
+
+	private enum MyCustomEnumError
+	{
+		[ErrorMessage("My message")]
+		MyMessage = 42,
+
+		[ErrorMessage("Other failure")]
+		OtherFailure = 314,
+	}
+
+	private enum RegularEnum
+	{
+		A,
+		B,
+		C,
+	}
+
+#pragma warning disable CA1069 // Enums values should not be duplicated
+	[Flags]
+	private enum FlagsEnum
+	{
+		None = 0,
+		A = 1,
+		AAgain = 1, // Intentionally the same as A
+		B = 2,
+		C = 4,
+		ABC = 7,
+	}
+#pragma warning restore CA1069 // Enums values should not be duplicated
 
 	private readonly static Error a = new();
 	private readonly static Error b = new(message: null);
@@ -28,6 +58,7 @@ public class ErrorTests
 	private readonly static Error r = new(new MyCustomError("My message", InnerError: new Error("My inner message")));
 	private readonly static Error s = new(new MyCustomError("My message", Data: 42));
 	private readonly static Error t = new(new MyCustomError("My message", Data: 42, InnerError: new Error("My inner message")));
+	private readonly static Error u = Error.FromEnum(MyCustomEnumError.MyMessage);
 
 	[Fact]
 	public void InnerError()
@@ -55,6 +86,7 @@ public class ErrorTests
 		Assert.Null(s.InnerError);
 		Assert.NotNull(t.InnerError);
 		Assert.Null(t.InnerError.Value.InnerError);
+		Assert.Null(u.InnerError);
 	}
 
 	[Fact]
@@ -83,6 +115,20 @@ public class ErrorTests
 		Assert.Equal("My message", s.Message);
 		Assert.Equal("My message", t.Message);
 		Assert.Equal("My inner message", t.InnerError?.Message);
+		Assert.Equal("My message", u.Message);
+
+		Assert.Equal("My message", Error.FromEnum(MyCustomEnumError.MyMessage).Message);
+		Assert.Equal("Other failure", Error.FromEnum(MyCustomEnumError.OtherFailure).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum((MyCustomEnumError)1234).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(RegularEnum.A).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(RegularEnum.B).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(RegularEnum.C).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum((RegularEnum)1234).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(FlagsEnum.None).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(FlagsEnum.A).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(FlagsEnum.B).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(FlagsEnum.A | FlagsEnum.B).Message);
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(FlagsEnum.ABC).Message);
 	}
 
 	[Fact]
@@ -107,6 +153,7 @@ public class ErrorTests
 		Assert.Null(r.Data);
 		Assert.Equal(42, (int)s.Data!);
 		Assert.Equal(42, (int)t.Data!);
+		Assert.Equal(MyCustomEnumError.MyMessage, (MyCustomEnumError)u.Data!);
 	}
 
 	[Fact]
@@ -158,6 +205,7 @@ public class ErrorTests
 		Assert.True(r.AsException() is { Message: "My message", InnerException: { Message: "My inner message", InnerException: null } });
 		Assert.True(s.AsException() is { Message: var m3, InnerException: null } && m3 == $"My message{Environment.NewLine}Data: 42");
 		Assert.True(t.AsException() is { Message: var m4, InnerException: { Message: "My inner message", InnerException: null } } && m4 == $"My message{Environment.NewLine}Data: 42");
+		Assert.True(u.AsException() is { Message: var m5, InnerException: null } && m5 == $"My message{Environment.NewLine}Data: MyMessage");
 	}
 
 	[Fact]
@@ -262,6 +310,61 @@ public class ErrorTests
 		--- Caused by: ---
 		Error: My inner message
 		""");
+		AssertEqual(u, """
+		Badeend.Tests.ErrorTests+MyCustomEnumError.MyMessage: My message
+		""");
+
+
+
+		AssertEqual(Error.FromEnum(MyCustomEnumError.MyMessage), """
+		Badeend.Tests.ErrorTests+MyCustomEnumError.MyMessage: My message
+		""");
+		AssertEqual(Error.FromEnum(MyCustomEnumError.OtherFailure), """
+		Badeend.Tests.ErrorTests+MyCustomEnumError.OtherFailure: Other failure
+		""");
+		AssertEqual(Error.FromEnum((MyCustomEnumError)1234), """
+		Badeend.Tests.ErrorTests+MyCustomEnumError: Operation did not complete successfully
+		Data: 1234
+		""");
+		AssertEqual(Error.FromEnum(RegularEnum.A), """
+		Badeend.Tests.ErrorTests+RegularEnum.A: Operation did not complete successfully
+		""");
+		AssertEqual(Error.FromEnum(RegularEnum.B), """
+		Badeend.Tests.ErrorTests+RegularEnum.B: Operation did not complete successfully
+		""");
+		AssertEqual(Error.FromEnum(RegularEnum.C), """
+		Badeend.Tests.ErrorTests+RegularEnum.C: Operation did not complete successfully
+		""");
+		AssertEqual(Error.FromEnum((RegularEnum)1234), """
+		Badeend.Tests.ErrorTests+RegularEnum: Operation did not complete successfully
+		Data: 1234
+		""");
+		AssertEqual(Error.FromEnum(FlagsEnum.None), """
+		Badeend.Tests.ErrorTests+FlagsEnum: Operation did not complete successfully
+		Data: None
+		""");
+		AssertEqual(Error.FromEnum(FlagsEnum.A), """
+		Badeend.Tests.ErrorTests+FlagsEnum: Operation did not complete successfully
+		Data: AAgain
+		""");
+		AssertEqual(Error.FromEnum(FlagsEnum.B), """
+		Badeend.Tests.ErrorTests+FlagsEnum: Operation did not complete successfully
+		Data: B
+		""");
+		AssertEqual(Error.FromEnum(FlagsEnum.A | FlagsEnum.B), """
+		Badeend.Tests.ErrorTests+FlagsEnum: Operation did not complete successfully
+		Data: AAgain, B
+		""");
+		AssertEqual(Error.FromEnum(FlagsEnum.A | FlagsEnum.B | FlagsEnum.C), """
+		Badeend.Tests.ErrorTests+FlagsEnum: Operation did not complete successfully
+		Data: ABC
+		""");
+		AssertEqual(Error.FromEnum(FlagsEnum.ABC), """
+		Badeend.Tests.ErrorTests+FlagsEnum: Operation did not complete successfully
+		Data: ABC
+		""");
+
+		Assert.Equal("Operation did not complete successfully", Error.FromEnum(FlagsEnum.ABC).Message);
 
 		static void AssertEqual(Error error, string expected)
 		{
@@ -301,6 +404,7 @@ public class ErrorTests
 		AssertEqual(r, messageAndInnerErrorError);
 		AssertEqual(s, messageAndDataError);
 		AssertEqual(t, messageAndDataAndInnerErrorError);
+		AssertEqual(u, new Error("My message", data: MyCustomEnumError.MyMessage));
 
 		static void AssertEqual(Error left, Error right)
 		{
@@ -320,6 +424,20 @@ public class ErrorTests
 	}
 
 	[Fact]
+	public void EnumErrorPropertiesAreCached()
+	{
+		var messageA = Error.FromEnum(MyCustomEnumError.MyMessage).Message;
+		var messageB = Error.FromEnum(MyCustomEnumError.MyMessage).Message;
+
+		Assert.True(object.ReferenceEquals(messageA, messageB));
+
+		var dataA = Error.FromEnum(MyCustomEnumError.MyMessage).Data;
+		var dataB = Error.FromEnum(MyCustomEnumError.MyMessage).Data;
+
+		Assert.True(object.ReferenceEquals(dataA, dataB));
+	}
+
+	[Fact]
 	public void SizeOf()
 	{
 		Assert.Equal(Unsafe.SizeOf<object>(), Unsafe.SizeOf<Error>());
@@ -333,6 +451,7 @@ public class ErrorTests
 		var someString = "My message";
 		var someException = new Exception("My message");
 		var someIError = new MyCustomError("My message");
+		_ = Error.FromEnum(MyCustomEnumError.MyMessage).ToString(); // Preload type-level cache.
 
 		var before = GC.GetAllocatedBytesForCurrentThread();
 
@@ -351,6 +470,8 @@ public class ErrorTests
 			accumulator += new Error(someException).Message.Length;
 			accumulator += new Error(someException).Data is null ? 0 : 1;
 			accumulator += new Error(someIError).Message.Length;
+			accumulator += Error.FromEnum(MyCustomEnumError.MyMessage).Message.Length;
+			accumulator += Error.FromEnum(MyCustomEnumError.MyMessage).Data is null ? 0 : 1;
 		}
 
 		var actual = GC.GetAllocatedBytesForCurrentThread() - before;
