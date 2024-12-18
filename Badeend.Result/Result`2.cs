@@ -261,12 +261,14 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// Check for equality.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool operator ==(Result<TValue, TError> left, Result<TValue, TError> right) => left.Equals(right);
 
 	/// <summary>
 	/// Check for inequality.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool operator !=(Result<TValue, TError> left, Result<TValue, TError> right) => !left.Equals(right);
 
 	/// <summary>

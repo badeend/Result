@@ -203,9 +203,6 @@ public class Result1Tests
 		Result<int, Error> s2 = 42;
 		Result<int> _s3 = s2; // Implicit conversion
 		Result<int, Error> _s4 = s1; // Implicit conversion
-
-		Assert.True(s1 == s2.AsStandardResult());
-		Assert.True(s2 == s1.AsGenericResult());
 	}
 
 	[Fact]

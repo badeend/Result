@@ -134,32 +134,4 @@ public static class Result
 
 		return null;
 	}
-
-	/// <summary>
-	/// Change the signature from a generic result into a standard result.
-	/// </summary>
-	/// <remarks>
-	/// This is an <c>O(1)</c> operation and does not allocate any memory.
-	///
-	/// Typically there's no need to manually call this method because the
-	/// operation also exists as an implicit conversion operator on the
-	/// <see cref="Result{TValue}"/> type.
-	/// </remarks>
-	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static Result<TValue> AsStandardResult<TValue>(this Result<TValue, Error> result) => result;
-
-	/// <summary>
-	/// Change the signature from a standard result into a generic result.
-	/// </summary>
-	/// <remarks>
-	/// This is an <c>O(1)</c> operation and does not allocate any memory.
-	///
-	/// Typically there's no need to manually call this method because the
-	/// operation also exists as an implicit conversion operator on the
-	/// <see cref="Result{T}"/> type.
-	/// </remarks>
-	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static Result<TValue, Error> AsGenericResult<TValue>(this Result<TValue> result) => result;
 }

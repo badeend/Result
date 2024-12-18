@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Badeend.ResultExtensions</PackageId>
+    <Description>TODO</Description>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Badeend.Error\Badeend.Error.csproj" />
+    <ProjectReference Include="..\Badeend.Result\Badeend.Result.csproj" />
+  </ItemGroup>
+</Project>
