@@ -8,7 +8,7 @@ namespace Badeend;
 
 /// <summary>
 /// Represents the result of a fallible operation. This type is a shorthand for:
-/// <see cref="Result{TValue, TError}"><c>Badeend.Result&lt;TValue, Badeend.Error&gt;</c></see>.
+/// <see cref="Result{TValue, TError}"><c>Result&lt;TValue, Badeend.Error&gt;</c></see>.
 /// </summary>
 /// <remarks>
 /// A <c>Result</c> can be in one of two states:

@@ -17,6 +17,14 @@ namespace Badeend;
 /// </list>
 /// </summary>
 /// <remarks>
+/// The four primary methods of creating new errors are:
+/// <list type="bullet">
+///   <item>From a message string (<see cref="Error(string?)"/>)</item>
+///   <item>From an existing Exception instance (<see cref="Error(Exception?)"/>)</item>
+///   <item>From an <c>enum</c> value (<see cref="FromEnum"/>)</item>
+///   <item>From a custom <see cref="IError"/> implementation (<see cref="Error(IError?)"/>)</item>
+/// </list>
+///
 /// This Error type is designed to be a close relative to the built-in Exception
 /// class, but with a focus on being lightweight and suitable for situations where
 /// errors need to be reported frequently and/or where performance is critical.
