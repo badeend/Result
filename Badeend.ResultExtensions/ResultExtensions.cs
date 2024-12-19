@@ -14,7 +14,7 @@ namespace Badeend.ResultExtensions;
 public static class ResultExtensions
 #pragma warning restore CA1724 // Type names should not match namespaces.
 {
-	/// <summary>4
+	/// <summary>
 	/// Change the signature from a generic result into a standard result.
 	/// </summary>
 	/// <remarks>
@@ -22,7 +22,9 @@ public static class ResultExtensions
 	///
 	/// Typically there's no need to manually call this method because the
 	/// operation also exists as an implicit conversion operator on the
-	/// <see cref="Result{TValue}"/> type.
+	/// <see cref="Result{TValue}"/> type. However, sometimes C#'s type inference
+	/// gets confused and needs a little help. In those cases, you can use this
+	/// method to explicitly convert from one type to the other.
 	/// </remarks>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -36,7 +38,9 @@ public static class ResultExtensions
 	///
 	/// Typically there's no need to manually call this method because the
 	/// operation also exists as an implicit conversion operator on the
-	/// <see cref="Result{T}"/> type.
+	/// <see cref="Result{TValue}"/> type. However, sometimes C#'s type inference
+	/// gets confused and needs a little help. In those cases, you can use this
+	/// method to explicitly convert from one type to the other.
 	/// </remarks>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
