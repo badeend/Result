@@ -171,6 +171,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	[SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Exists as extension method.")]
 	public static implicit operator Result<TValue, Error>(Result<TValue> result) => result.inner;
 
 	/// <summary>
@@ -178,6 +179,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	[SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Exists as extension method.")]
 	public static implicit operator Result<TValue>(Result<TValue, Error> result) => new(result);
 
 	/// <summary>

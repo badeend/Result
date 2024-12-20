@@ -43,6 +43,8 @@ namespace Badeend;
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>
 /// <typeparam name="TError">Type of the result when the operation fails.</typeparam>
 [StructLayout(LayoutKind.Auto)]
+[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case", Justification = "Internal")]
+[SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Result is only comparable if TValue and TError are, which we can't know at compile time. Don't want to promote the comparable stuff too much.")]
 public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>>, IComparable<Result<TValue, TError>>, IComparable
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
@@ -150,7 +152,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 			if (this.isSuccess)
 			{
 				// Extracted exceptional code path into separate method to aid inlining.
-				this.ThrowSuccessfulException();
+				ThrowSuccessfulException();
 			}
 
 			return ref this.error;
@@ -158,7 +160,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	}
 
 	[DoesNotReturn]
-	private void ThrowSuccessfulException()
+	private static void ThrowSuccessfulException()
 	{
 		throw new InvalidOperationException("Operation did not fail.");
 	}
@@ -290,6 +292,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	/// <returns>
 	/// See <see cref="IComparable{T}.CompareTo(T)"><c>IComparable&lt;T&gt;.CompareTo(T)</c></see> for more information.
 	/// </returns>
+	/// <exception cref="ArgumentException"><typeparamref name="TValue"/> or <typeparamref name="TError"/> does not implement IComparable.</exception>
 	[Pure]
 	public int CompareTo(Result<TValue, TError> other) => (this.isSuccess, other.isSuccess) switch
 	{

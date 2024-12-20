@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Badeend;
 
 /// <summary>
 /// State of a result.
 /// </summary>
+[SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Byte is sufficient for this enum.")]
 public enum ResultState : byte
 {
 	// The enum cases appear in reverse order with explicitly defined values.
