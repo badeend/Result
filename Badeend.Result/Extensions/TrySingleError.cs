@@ -1,6 +1,6 @@
 using Badeend.Errors;
 
-namespace Badeend.ResultExtensions;
+namespace Badeend.Extensions;
 
 /// <summary>
 /// Error returned by <see cref="CollectionExtensions.TrySingle{T}(IEnumerable{T})"/>.

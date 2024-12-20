@@ -28,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Badeend.ResultExtensions\Badeend.ResultExtensions.csproj" />
     <ProjectReference Include="..\Badeend.Result\Badeend.Result.csproj" />
   </ItemGroup>
 

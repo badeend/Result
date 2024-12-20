@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
-namespace Badeend.ResultExtensions;
+namespace Badeend.Extensions;
 
 /// <summary>
 /// Fallible overloads for commonly used collection operations.

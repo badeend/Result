@@ -2,7 +2,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using Badeend.Errors;
 
-namespace Badeend.ResultExtensions;
+namespace Badeend.Extensions;
 
 // The extension methods have been split out into separate classes because
 // .NET does not support overloading methods based on generic constraints only.
@@ -10,9 +10,7 @@ namespace Badeend.ResultExtensions;
 /// <summary>
 /// Extension methods for Results.
 /// </summary>
-#pragma warning disable CA1724 // Type names should not match namespaces.
 public static class ResultExtensions
-#pragma warning restore CA1724 // Type names should not match namespaces.
 {
 	/// <summary>
 	/// Change the signature from a generic result into a standard result.

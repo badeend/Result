@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Badeend;
-using Badeend.ResultExtensions;
+using Badeend.Extensions;
 
 namespace Badeend.Tests;
 
