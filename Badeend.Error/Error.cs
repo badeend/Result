@@ -17,7 +17,13 @@ namespace Badeend;
 /// </list>
 /// </summary>
 /// <remarks>
-/// The four primary methods of creating new errors are:
+/// This Error type is designed to be a close relative to the built-in Exception
+/// class, but with a focus on being lightweight and suitable for situations where
+/// errors need to be reported frequently and/or where performance is critical.
+/// The most commonly used constructors (e.g. <c><see cref="Error(string?)"/></c>)
+/// are even allocation free.
+///
+/// The four primary methods for creating new errors are:
 /// <list type="bullet">
 ///   <item>From a message string (<see cref="Error(string?)"/>)</item>
 ///   <item>From an existing Exception instance (<see cref="Error(Exception?)"/>)</item>
@@ -25,13 +31,7 @@ namespace Badeend;
 ///   <item>From a custom <see cref="IError"/> implementation (<see cref="Error(IError?)"/>)</item>
 /// </list>
 ///
-/// This Error type is designed to be a close relative to the built-in Exception
-/// class, but with a focus on being lightweight and suitable for situations where
-/// errors need to be reported frequently and/or where performance is critical.
-/// The most commonly used constructors (e.g. <c><see cref="Error(string?)"/></c>)
-/// are even allocation free.
-///
-/// This type has the size of a single machine word (4 or 8 bytes), making
+/// This type has the size of just a single machine word (4 or 8 bytes), making
 /// it a good fit for applications where errors are treated as first-class
 /// values, are copied frequently and are propagated through regular control
 /// flow patterns instead of stack unwinding.
@@ -254,9 +254,8 @@ public readonly struct Error : IEquatable<Error>
 	/// Create a new <see cref="Error"/> from the provided enum <paramref name="value"/>.
 	/// </summary>
 	/// <remarks>
-	/// The error message can be customized by declaring an
-	/// <see cref="ErrorMessageAttribute">[ErrorMessage]</see> attribute on the
-	/// enum members.
+	/// The error message can be customized by annotating the enum members with the
+	/// <see cref="ErrorMessageAttribute">[ErrorMessage]</see> attribute.
 	///
 	/// If the value is a regular declared enum member (i.e. it is returned by <c>Enum.GetValues</c>),
 	/// then this is an <c>O(1)</c> operation and does not allocate any memory.
@@ -301,8 +300,8 @@ public readonly struct Error : IEquatable<Error>
 	/// <summary>
 	/// Convert the error into an exception. This may return a previously
 	/// <see cref="Error(Exception?)">Error-wrapped-Exception</see> as-is.
-	/// The return value should therefore be considered as "already thrown" and
-	/// should not be thrown directly again. The only supported method for
+	/// The returned exception should therefore be considered as "already thrown"
+	/// and should not be thrown directly again. The only supported method for
 	/// throwing the returned value is as the inner exception of a fresh
 	/// exception instance.
 	/// </summary>
