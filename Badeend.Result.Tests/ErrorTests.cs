@@ -424,6 +424,30 @@ public class ErrorTests
 	}
 
 	[Fact]
+	public void CompareTo()
+	{
+		Error a1 = new("a");
+		Error a2 = new("a");
+		Error b = new("b");
+		Error c1 = new("c", data: 42);
+		Error c2 = new("c", data: 314);
+		Error c3 = new("c", innerError: new("3"));
+		Error c4 = new("c", innerError: new("4"));
+
+		Assert.True(a1.CompareTo(b) < 0);
+		Assert.True(a1.CompareTo(a2) == 0);
+		Assert.True(b.CompareTo(a1) > 0);
+		Assert.True(c1.CompareTo(c2) < 0);
+		Assert.True(c2.CompareTo(c3) > 0);
+		Assert.True(c3.CompareTo(c4) < 0);
+
+		Error[] unordered = [c3, b, c1, a1, c4, a2, c2];
+		Error[] ordered = unordered.OrderBy(r => r).ToArray();
+
+		Assert.Equal([a1, a2, b, c3, c4, c1, c2], ordered);
+	}
+
+	[Fact]
 	public void EnumErrorPropertiesAreCached()
 	{
 		var messageA = Error.FromEnum(MyCustomEnumError.MyMessage).Message;

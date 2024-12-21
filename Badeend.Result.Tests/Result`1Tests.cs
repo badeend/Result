@@ -210,4 +210,32 @@ public class Result1Tests
 	{
 		Assert.Equal(Unsafe.SizeOf<Result<int, Error>>(), Unsafe.SizeOf<Result<int>>());
 	}
+
+	[Fact]
+	public void CompareTo()
+	{
+		Result<int> three = 3;
+		Result<int> four = 4;
+
+		Result<int> cat = new Error("Cat");
+		Result<int> dog = new Error("Dog");
+
+		Assert.True(three.CompareTo(four) < 0);
+		Assert.True(three.CompareTo(three) == 0);
+		Assert.True(four.CompareTo(three) > 0);
+		Assert.True(four.CompareTo(four) == 0);
+
+		Assert.True(cat.CompareTo(dog) < 0);
+		Assert.True(cat.CompareTo(cat) == 0);
+		Assert.True(dog.CompareTo(cat) > 0);
+		Assert.True(dog.CompareTo(dog) == 0);
+
+		Assert.True(three.CompareTo(cat) < 0);
+		Assert.True(cat.CompareTo(three) > 0);
+
+		Result<int>[] unordered = [dog, four, three, cat];
+		Result<int>[] ordered = unordered.OrderBy(r => r).ToArray();
+
+		Assert.Equal([three, four, cat, dog], ordered);
+	}
 }

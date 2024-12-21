@@ -45,8 +45,9 @@ namespace Badeend;
 /// equivalent to using the <see cref="Error()">parameterless constructor</see>.
 /// </remarks>
 [StructLayout(LayoutKind.Auto)]
+[SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Error is only comparable its Data is too, which we can't know at compile time. Don't want to promote the comparable stuff too much.")]
 #pragma warning disable CA1716 // Identifiers should not match keywords. => Don't care about VB.
-public readonly struct Error : IEquatable<Error>
+public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparable
 #pragma warning restore CA1716 // Identifiers should not match keywords.
 {
 	private const string MessagePrefix = $"Error: ";
@@ -474,6 +475,58 @@ public readonly struct Error : IEquatable<Error>
 		return obj is Error otherError && this.Equals(otherError);
 	}
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
+
+	/// <summary>
+	/// Compare two errors.
+	///
+	/// Errors are compared by their components: <c>(Message, Data, InnerError)</c>.
+	/// </summary>
+	/// <returns>
+	/// See <see cref="IComparable{T}.CompareTo(T)"><c>IComparable&lt;T&gt;.CompareTo(T)</c></see> for more information.
+	/// </returns>
+	/// <exception cref="ArgumentException">The Data object does not implement IComparable.</exception>
+	[Pure]
+	public int CompareTo(Error other)
+	{
+		if (object.ReferenceEquals(this.obj, other.obj))
+		{
+			return 0;
+		}
+
+		var messageComparison = string.CompareOrdinal(this.Message, other.Message);
+		if (messageComparison != 0)
+		{
+			return messageComparison;
+		}
+
+		var dataComparison = Comparer<object>.Default.Compare(this.Data!, other.Data!);
+		if (dataComparison != 0)
+		{
+			return dataComparison;
+		}
+
+		return Compare(this.InnerError, other.InnerError);
+	}
+
+	private static int Compare(Error? left, Error? right)
+	{
+		if (left is null)
+		{
+			return right is null ? 0 : -1;
+		}
+		else
+		{
+			return right is null ? 1 : left.Value.CompareTo(right.Value);
+		}
+	}
+
+	/// <inheritdoc/>
+	int IComparable.CompareTo(object? other) => other switch
+	{
+		null => 1,
+		Error otherError => this.CompareTo(otherError),
+		_ => throw new ArgumentException("Comparison with incompatible type", nameof(other)),
+	};
 
 	/// <inheritdoc cref="Equals(Error)"/>
 	[Pure]

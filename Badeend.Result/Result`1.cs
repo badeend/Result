@@ -43,7 +43,8 @@ namespace Badeend;
 /// </remarks>
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>
 [StructLayout(LayoutKind.Auto)]
-public readonly struct Result<TValue> : IEquatable<Result<TValue>>
+[SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Result is only comparable if TValue and Error are, which we can't know at compile time. Don't want to promote the comparable stuff too much.")]
+public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<Result<TValue>>, IComparable
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
@@ -216,4 +217,20 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public override int GetHashCode() => this.inner.GetHashCode();
+
+	/// <inheritdoc cref="Result{TValue,TError}.CompareTo"/>
+	[Pure]
+	public int CompareTo(Result<TValue> other) => this.inner.CompareTo(other.inner);
+
+	/// <inheritdoc/>
+	int IComparable.CompareTo(object? other) => other switch
+	{
+		null => 1,
+		Result<TValue> otherResult => this.CompareTo(otherResult),
+
+		// FYI, we could additionally match against `TValue` and `Error` directly,
+		// but this would be incompatible with the CompareTo implementation of
+		// the fully generic Result<TValue, TError> type.
+		_ => throw new ArgumentException("Comparison with incompatible type", nameof(other)),
+	};
 }
