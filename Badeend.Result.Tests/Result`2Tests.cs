@@ -64,9 +64,12 @@ public class Result2Tests
 		Assert.True(d != "Bad");
 		Assert.True(d != 42);
 
-		Assert.True(s.GetHashCode() == 42.GetHashCode());
-		Assert.True(f.GetHashCode() == "Bad".GetHashCode());
-		Assert.True(d.GetHashCode() == 0);
+		Assert.True(s.GetHashCode() == s2.GetHashCode());
+		Assert.True(s.GetHashCode() == s3.GetHashCode());
+		Assert.True(f.GetHashCode() == f2.GetHashCode());
+		Assert.True(f.GetHashCode() == f3.GetHashCode());
+		Assert.True(s.GetHashCode() != f.GetHashCode());
+		Assert.True(s.GetHashCode() != d.GetHashCode());
 	}
 
 	[Fact]

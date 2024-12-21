@@ -69,9 +69,12 @@ public class Result1Tests
 		Assert.True(d != SomeError);
 		Assert.True(d != 42);
 
-		Assert.True(s.GetHashCode() == 42.GetHashCode());
-		Assert.True(f.GetHashCode() == SomeError.GetHashCode());
-		Assert.True(d.GetHashCode() == default(Error).GetHashCode());
+		Assert.True(s.GetHashCode() == s2.GetHashCode());
+		Assert.True(s.GetHashCode() == s3.GetHashCode());
+		Assert.True(f.GetHashCode() == f2.GetHashCode());
+		Assert.True(f.GetHashCode() == f3.GetHashCode());
+		Assert.True(s.GetHashCode() != f.GetHashCode());
+		Assert.True(s.GetHashCode() != d.GetHashCode());
 	}
 
 	[Fact]
@@ -259,6 +262,11 @@ public class Result1Tests
 		Assert.True(genericFour.Equals(standardFour));
 		Assert.False(genericThree.Equals(standardFour));
 		Assert.False(standardFour.Equals(genericThree));
+
+		Assert.True(standardThree.GetHashCode() == genericThree.GetHashCode());
+		Assert.True(standardThree.GetHashCode() != exceptionThree.GetHashCode());
+		Assert.True(standardFour.GetHashCode() == genericFour.GetHashCode());
+		Assert.True(standardThree.GetHashCode() != genericFour.GetHashCode());
 
 		Assert.True(standardThree.CompareTo(standardThree) == 0);
 		Assert.True(standardThree.CompareTo(genericFour) < 0);

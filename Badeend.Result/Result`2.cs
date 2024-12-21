@@ -328,9 +328,5 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 
 	/// <inheritdoc/>
 	[Pure]
-	public override int GetHashCode() => this.isSuccess switch
-	{
-		true => this.value?.GetHashCode() ?? 0,
-		false => this.error?.GetHashCode() ?? 0,
-	};
+	public override int GetHashCode() => HashCode.Combine(typeof(Result<TValue, TError>), this.isSuccess, this.value, this.error);
 }
