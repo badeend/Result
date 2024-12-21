@@ -6,6 +6,7 @@ using Badeend;
 namespace Badeend.Tests;
 
 #pragma warning disable CS1718 // Comparison made to same variable
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
 
 /// <summary>
 /// Tests for <see cref="Result{TValue}"/>.
@@ -237,5 +238,33 @@ public class Result1Tests
 		Result<int>[] ordered = unordered.OrderBy(r => r).ToArray();
 
 		Assert.Equal([three, four, cat, dog], ordered);
+	}
+
+	[Fact]
+	public void ObjectComparisonWithGenericResults()
+	{
+		IComparable standardThree = Result.Success(3);
+		IComparable genericThree = Result.Success<int, Error>(3);
+		IComparable exceptionThree = Result.Success<int, Exception>(3);
+
+		IComparable standardFour = Result.Success(4);
+		IComparable genericFour = Result.Success<int, Error>(4);
+
+		Assert.True(standardThree.Equals(genericThree));
+		Assert.True(genericThree.Equals(standardThree));
+		Assert.False(genericThree.Equals(exceptionThree));
+		Assert.False(exceptionThree.Equals(genericThree));
+		Assert.False(exceptionThree.Equals(standardThree));
+		Assert.True(standardFour.Equals(genericFour));
+		Assert.True(genericFour.Equals(standardFour));
+		Assert.False(genericThree.Equals(standardFour));
+		Assert.False(standardFour.Equals(genericThree));
+
+		Assert.True(standardThree.CompareTo(standardThree) == 0);
+		Assert.True(standardThree.CompareTo(genericFour) < 0);
+		Assert.True(genericFour.CompareTo(standardThree) > 0);
+
+		Assert.Throws<ArgumentException>(() => standardThree.CompareTo(exceptionThree));
+		Assert.Throws<ArgumentException>(() => standardThree.CompareTo(exceptionThree));
 	}
 }

@@ -306,16 +306,19 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	[Pure]
 	[Browsable(false)]
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public override bool Equals(object? obj)
+	public override bool Equals(object? obj) => obj switch
 	{
-		return obj is Result<TValue, TError> result && this.Equals(result);
-	}
+		Result<TValue, TError> result => this.Equals(result),
+		Result<TValue> result => this.Equals(result.inner),
+		_ => false,
+	};
 
 	/// <inheritdoc/>
 	int IComparable.CompareTo(object? other) => other switch
 	{
 		null => 1,
 		Result<TValue, TError> otherResult => this.CompareTo(otherResult),
+		Result<TValue> otherResult when this is Result<TValue, Error> thisResult => thisResult.CompareTo(otherResult.inner),
 
 		// FYI, we could additionally match against `TValue` and `TError` directly,
 		// but if they represent the same type or are subtypes of each other
