@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using Badeend.Errors;
 
-namespace Badeend.Extensions;
+namespace Badeend.Results.Extensions;
 
 /// <summary>
 /// Extension methods for Results.
