@@ -39,6 +39,13 @@ namespace Badeend;
 /// <see cref="GetValueOrDefault()"><c>GetValueOrDefault</c></see> or
 /// <see cref="GetErrorOrDefault()"><c>GetErrorOrDefault</c></see>.
 ///
+/// Note that you should generally not attempt to
+/// derive any semantic meaning from the <see cref="Badeend.Error"/>'s content.
+/// This type (or its longhand form <c>Result&lt;T, Badeend.Error&gt;</c>)
+/// is semantically the same as <c>Result&lt;T, void&gt;</c> in that: all that the
+/// domain logic should care about is whether the operation succeeded or failed.
+/// The Error data is just a way to carry additional developer-oriented context.
+///
 /// A Result's <c>default</c> value is equivalent to <c>Result.Error(default!)</c>.
 /// </remarks>
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>

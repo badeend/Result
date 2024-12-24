@@ -1,7 +1,7 @@
 namespace Badeend.Errors;
 
 /// <summary>
-/// An custom error implementation that can be freely converted into an <see cref="Error"/>.
+/// A custom error implementation that can be freely converted into an <see cref="Error"/>.
 /// </summary>
 public interface IError
 {

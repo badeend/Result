@@ -20,8 +20,6 @@ namespace Badeend;
 /// This Error type is designed to be a close relative to the built-in Exception
 /// class, but with a focus on being lightweight and suitable for situations where
 /// errors need to be reported frequently and/or where performance is critical.
-/// The most commonly used constructors (e.g. <c><see cref="Error(string?)"/></c>)
-/// are even allocation free.
 ///
 /// The four primary methods for creating new errors are:
 /// <list type="bullet">
@@ -30,6 +28,16 @@ namespace Badeend;
 ///   <item>From an <c>enum</c> value (<see cref="FromEnum"/>)</item>
 ///   <item>From a custom <see cref="IError"/> implementation (<see cref="Error(IError?)"/>)</item>
 /// </list>
+///
+/// All of these are <c>O(1)</c> and allocation free.
+///
+/// This type is designed to be used with <c>Badeend.Result</c>, though it can
+/// be used standalone as well. Note that you should generally not attempt to
+/// derive any semantic meaning from the Error's content.
+/// I.e., <c>Result&lt;T, Badeend.Error&gt;</c> (or its shorthand <c>Result&lt;T&gt;</c>)
+/// is semantically the same as <c>Result&lt;T, void&gt;</c> in that: all that the
+/// domain logic should care about is whether the operation succeeded or failed.
+/// The Error data is just a way to carry additional developer-oriented context.
 ///
 /// This type has the size of just a single machine word (4 or 8 bytes), making
 /// it a good fit for applications where errors are treated as first-class
