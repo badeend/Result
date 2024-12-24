@@ -3,7 +3,7 @@ using Badeend.Errors;
 namespace Badeend.Results.Extensions;
 
 /// <summary>
-/// Error returned by <see cref="ResultExtensions.TrySingle{T}(IEnumerable{T})"/>.
+/// Error returned by <see cref="CollectionExtensions.TrySingle{T}(IEnumerable{T})"/>.
 /// </summary>
 public enum TrySingleError
 {
