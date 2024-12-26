@@ -25,7 +25,7 @@ dotnet add package Badeend.Result
 
 [Full API reference](https://badeend.github.io/Result/api/Badeend.html)
 
-## Basic example
+## Generic results
 
 #### Create Result
 
@@ -83,9 +83,9 @@ public async Task<ActionResult<Session>> PostSignIn(SignInRequest request)
 }
 ```
 
-## Example #2
+## Basic results
 
-Let's say we're building an e-commerce website. The product pages contain a "Recommended for you" section at the bottom. The data in this section comes from an external Recommendations microservice. Because the data is requested over a network, we must take into consideration that the external request may fail. Yet, we want the product page to remain operational, even in the presence of failure in the recommendations service. So in this case we conclude that failures are "expected" and should be handled gracefully by the caller:
+Let's say we're building an e-commerce website. Each product page contain a "Recommended for you" section. The data in this section comes from an external Recommendations microservice. Because the data is requested over a network, we must take into consideration that the external request may fail. Yet, we want the product page to remain operational, even in the presence of failure in the recommendations service. In this case we'd conclude that failures are "expected" and should be handled gracefully by the caller:
 
 ```cs
 public interface IRecommendationsService
@@ -98,7 +98,9 @@ public interface IRecommendationsService
 }
 ```
 
-As you can see, we've wrapped the recommendations list inside a `Result` to codify the fallibility of this operation. Also, because external I/O can fail for a myriad of reasons, we decide to opt-out of the strongly typed error payload and used the [`Result<T>`](xref:Badeend.Result`1) shorthand instead. All that the caller wants to know is whether the operation succeeded or log the error if it didn't. So there no need for us to catalog & codify all the different ways a network request might fail in the type system.
+As you can see, we've wrapped the recommendations list inside a `Result` to codify the fallibility of this operation. Also, we opted-out of the strongly typed error payload and used the [`Result<T>`](xref:Badeend.Result`1) shorthand instead for two reasons:
+- External I/O can fail for a myriad of reasons. Cataloging all the different ways a network request might fail and codifying that in the type system is nigh impossible.
+- All that the product page needs to know is whether the operation failed or not and log the error if it did:
 
 ```cs
 public class ProductPage(IRecommendationsService recommendationsService, ILogger<ProductPage> logger) : PageModel
@@ -128,7 +130,7 @@ public class ProductPage(IRecommendationsService recommendationsService, ILogger
 
 This package comes with two `Result` types:
 - The fully generic [`Result<TValue, TError>`](xref:Badeend.Result`2): The `TError` type can be anything that describes the failure; an `enum`, a `record`, a list of validation messages, etc... Let your imagination run wild. As long as it contains enough information for callers of your method to take meaningful action.
-- The shorthand "basic" [`Result<TValue>`](xref:Badeend.Result`1): This is essentially an alias for `Result<T, Badeend.Error>`. (See: [`Badeend.Error`](xref:Badeend.Error)). You should generally not attempt to derive any semantic meaning from the Error's content. The shorthand result type should be treated semantically the same as `Result<T, void>` in that: all that the domain logic should care about is whether the operation succeeded or failed. The Error data is just a way to optionally carry additional developer-oriented debug information.
+- The shorthand "basic" [`Result<T>`](xref:Badeend.Result`1): This is essentially an alias for `Result<T, Badeend.Error>`. (See: [`Badeend.Error`](xref:Badeend.Error)). Though for all intents and purposes it should be treated as `Result<T, void>` in that: all that the domain logic should care about is whether the operation failed or not. The Error payload is just a way to _optionally_ carry developer-oriented debug information.
 
 An example of this choice can be seen in practice in the [CollectionExtensions](xref:Badeend.Results.Extensions.CollectionExtensions):
 - [`TryFirst`](xref:Badeend.Results.Extensions.CollectionExtensions.TryFirst``1(System.Collections.Generic.IEnumerable{``0})) has only one failure mode: the collection being empty. Therefore it returns: `Result<T>`.
