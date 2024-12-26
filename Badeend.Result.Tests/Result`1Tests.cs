@@ -246,33 +246,33 @@ public class Result1Tests
 	[Fact]
 	public void ObjectComparisonWithGenericResults()
 	{
-		IComparable standardThree = Result.Success(3);
+		IComparable basicThree = Result.Success(3);
 		IComparable genericThree = Result.Success<int, Error>(3);
 		IComparable exceptionThree = Result.Success<int, Exception>(3);
 
-		IComparable standardFour = Result.Success(4);
+		IComparable basicFour = Result.Success(4);
 		IComparable genericFour = Result.Success<int, Error>(4);
 
-		Assert.True(standardThree.Equals(genericThree));
-		Assert.True(genericThree.Equals(standardThree));
+		Assert.True(basicThree.Equals(genericThree));
+		Assert.True(genericThree.Equals(basicThree));
 		Assert.False(genericThree.Equals(exceptionThree));
 		Assert.False(exceptionThree.Equals(genericThree));
-		Assert.False(exceptionThree.Equals(standardThree));
-		Assert.True(standardFour.Equals(genericFour));
-		Assert.True(genericFour.Equals(standardFour));
-		Assert.False(genericThree.Equals(standardFour));
-		Assert.False(standardFour.Equals(genericThree));
+		Assert.False(exceptionThree.Equals(basicThree));
+		Assert.True(basicFour.Equals(genericFour));
+		Assert.True(genericFour.Equals(basicFour));
+		Assert.False(genericThree.Equals(basicFour));
+		Assert.False(basicFour.Equals(genericThree));
 
-		Assert.True(standardThree.GetHashCode() == genericThree.GetHashCode());
-		Assert.True(standardThree.GetHashCode() != exceptionThree.GetHashCode());
-		Assert.True(standardFour.GetHashCode() == genericFour.GetHashCode());
-		Assert.True(standardThree.GetHashCode() != genericFour.GetHashCode());
+		Assert.True(basicThree.GetHashCode() == genericThree.GetHashCode());
+		Assert.True(basicThree.GetHashCode() != exceptionThree.GetHashCode());
+		Assert.True(basicFour.GetHashCode() == genericFour.GetHashCode());
+		Assert.True(basicThree.GetHashCode() != genericFour.GetHashCode());
 
-		Assert.True(standardThree.CompareTo(standardThree) == 0);
-		Assert.True(standardThree.CompareTo(genericFour) < 0);
-		Assert.True(genericFour.CompareTo(standardThree) > 0);
+		Assert.True(basicThree.CompareTo(basicThree) == 0);
+		Assert.True(basicThree.CompareTo(genericFour) < 0);
+		Assert.True(genericFour.CompareTo(basicThree) > 0);
 
-		Assert.Throws<ArgumentException>(() => standardThree.CompareTo(exceptionThree));
-		Assert.Throws<ArgumentException>(() => standardThree.CompareTo(exceptionThree));
+		Assert.Throws<ArgumentException>(() => basicThree.CompareTo(exceptionThree));
+		Assert.Throws<ArgumentException>(() => basicThree.CompareTo(exceptionThree));
 	}
 }

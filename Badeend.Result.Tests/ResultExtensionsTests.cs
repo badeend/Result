@@ -18,19 +18,19 @@ public class ResultExtensionsTests
 	}
 
 	[Fact]
-	public void AsStandardResult()
+	public void AsBasicResult()
 	{
 		Result<int, Error> r1 = new Error("Test");
-		Result<int> o1 = r1.AsStandardResult();
+		Result<int> o1 = r1.AsBasicResult();
 
 		Result<int, MyCustomError> r2 = new MyCustomError("Test");
-		Result<int> o2 = r2.AsStandardResult();
+		Result<int> o2 = r2.AsBasicResult();
 
 		Result<int, SomeEnum> r3 = SomeEnum.A;
-		Result<int> o3 = r3.AsStandardResult();
+		Result<int> o3 = r3.AsBasicResult();
 
 		Result<int, InvalidOperationException> r4 = new InvalidOperationException();
-		Result<int> o4 = r4.AsStandardResult();
+		Result<int> o4 = r4.AsBasicResult();
 	}
 
 	private enum SomeEnum

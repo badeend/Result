@@ -10,7 +10,7 @@ namespace Badeend.Results.Extensions;
 public static class ResultExtensions
 {
 	/// <summary>
-	/// Change the signature from a generic result into a standard result.
+	/// Change the signature from a generic result into a basic result.
 	/// </summary>
 	/// <remarks>
 	/// This is an <c>O(1)</c> operation and does not allocate any memory.
@@ -23,17 +23,17 @@ public static class ResultExtensions
 	///
 	/// Additional overloads of this method exist for specific error types:
 	/// <list type="bullet">
-	/// <item><see cref="IErrorResultExtensions.AsStandardResult">where TError : IError</see></item>
-	/// <item><see cref="EnumResultExtensions.AsStandardResult">where TError : enum</see></item>
-	/// <item><see cref="ExceptionResultExtensions.AsStandardResult">where TError : Exception</see></item>
+	/// <item><see cref="IErrorResultExtensions.AsBasicResult">where TError : IError</see></item>
+	/// <item><see cref="EnumResultExtensions.AsBasicResult">where TError : enum</see></item>
+	/// <item><see cref="ExceptionResultExtensions.AsBasicResult">where TError : Exception</see></item>
 	/// </list>
 	/// </remarks>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static Result<TValue> AsStandardResult<TValue>(this Result<TValue, Error> result) => result;
+	public static Result<TValue> AsBasicResult<TValue>(this Result<TValue, Error> result) => result;
 
 	/// <summary>
-	/// Change the signature from a standard result into a generic result.
+	/// Change the signature from a basic result into a generic result.
 	/// </summary>
 	/// <remarks>
 	/// This is an <c>O(1)</c> operation and does not allocate any memory.
@@ -66,7 +66,7 @@ public static class IErrorResultExtensions
 	/// This is an <c>O(1)</c> operation and does not allocate any memory.
 	/// </remarks>
 	[Pure]
-	public static Result<TValue> AsStandardResult<TValue, TError>(this Result<TValue, TError> result)
+	public static Result<TValue> AsBasicResult<TValue, TError>(this Result<TValue, TError> result)
 		where TError : IError
 	{
 		return result.TryGetValue(out var value, out var error) ? value : new Error(error);
@@ -91,7 +91,7 @@ public static class EnumResultExtensions
 	/// then this is an <c>O(1)</c> operation and does not allocate any memory.
 	/// </remarks>
 	[Pure]
-	public static Result<TValue> AsStandardResult<TValue, TError>(this Result<TValue, TError> result)
+	public static Result<TValue> AsBasicResult<TValue, TError>(this Result<TValue, TError> result)
 		where TError : struct, Enum
 	{
 		return result.TryGetValue(out var value, out var error) ? value : Error.FromEnum(error);
@@ -115,7 +115,7 @@ public static class ExceptionResultExtensions
 	/// This is an <c>O(1)</c> operation and does not allocate any memory.
 	/// </remarks>
 	[Pure]
-	public static Result<TValue> AsStandardResult<TValue, TError>(this Result<TValue, TError> result)
+	public static Result<TValue> AsBasicResult<TValue, TError>(this Result<TValue, TError> result)
 		where TError : Exception
 	{
 		return result.TryGetValue(out var value, out var error) ? value : new Error(error);

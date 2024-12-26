@@ -9,7 +9,7 @@ namespace Badeend;
 public static class Result
 {
 	/// <summary>
-	/// Create a successful standard result.
+	/// Create a successful basic result.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -23,7 +23,7 @@ public static class Result
 	public static Result<TValue, TError> Success<TValue, TError>(TValue value) => value;
 
 	/// <summary>
-	/// Create a failed standard result.
+	/// Create a failed basic result.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
