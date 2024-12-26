@@ -31,13 +31,11 @@ Results are commonly used in scenarios where failure is anticipated can be handl
 
 #### Why does this package exist?
 
-There are already dozens of similar packages. Yet, surprisingly, none of them provide what I'm looking for:
+While there are many similar packages available, this one is designed to address specific needs that others did not fully meet:
 
-- **No opinion on what is allowed to be an error.** In other words: I want the error type to be parameterized (`TError`) without constraints. IMO, hardcoding the error type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
-
-- **Just Result, nothing else.** I'm not interested in a complete Functional Programming framework that introduces 20-or-so new concepts, pushes all code into lambdas and attempts to redefine what it means to write C#. Not because I don't like FP, but because the language & ecosystem (sadly 🥲) doesn't afford it.
-
-- **"Native" C#.** It should feel as if it is written _by_ C# developers, _for_ C# developers, for use in (existing) C# codebases. Or put differently: if such a type were to be added to the BCL, how would Microsoft design it?
+- **No opinion on what is allowed to be an error.** The error type (`TError`) is parameterized without constraints.
+- **Focus on simplicity.** This package is designed to provide just what's needed without introducing an extensive Functional Programming framework. It's about enhancing your existing C# code without overwhelming it with additional concepts.
+- **For C# developers.** The goal is to make it feel "native" to the language, designed with C# conventions in mind, and avoiding a paradigm shift in how C# code is written.
 
 ---
 

@@ -13,7 +13,7 @@ Results are commonly used in scenarios where failure is anticipated can be handl
 - Authentication and authorization,
 - and more ...
 
-`Result<TValue, TError>` represents the result of a fallible operation as a first class value. A result can be in one of two states: "success" or "error". Both states have an associated payload of type `TValue` or `TError` respectively.
+`Result<TValue, TError>` represents the result of a fallible operation as a first class value. A result can be in one of two states: "success" or "error". Both states have an associated payload of type `TValue` or `TError` respectively. If an operation has exactly one failure mode and/or you don't care about the strongly typed error data, you can also use the `Result<TValue>` shorthand.
 
 ## Installation
 
@@ -83,25 +83,66 @@ public async Task<ActionResult<Session>> PostSignIn(SignInRequest request)
 }
 ```
 
-## When should you use Results?
+## Example #2
+
+Let's say we're building an e-commerce website. The product pages contain a "Recommended for you" section at the bottom. The data in this section comes from an external Recommendations microservice. Because the data is requested over a network, we must take into consideration that the external request may fail. Yet, we want the product page to remain operational, even in the presence of failure in the recommendations service. So in this case we conclude that failures are "expected" and should be handled gracefully by the caller:
+
+```cs
+public interface IRecommendationsService
+{
+    /// <summary>
+    /// Fetch a personalized recommendations feed based on the user's past
+    /// interests and the product they're currently looking at.
+    /// </summary>
+    Task<Result<List<Recommendation>>> Fetch(int userId, int productId); // <--- Notice the return type.
+}
+```
+
+As you can see, we've wrapped the recommendations list inside a `Result` to codify the fallibility of this operation. Also, because external I/O can fail for a myriad of reasons, we decide to opt-out of the strongly typed error payload and used the [`Result<T>`](xref:Badeend.Result`1) shorthand instead. All that the caller wants to know is whether the operation succeeded or log the error if it didn't. So there no need for us to catalog & codify all the different ways a network request might fail in the type system.
+
+```cs
+public class ProductPage(IRecommendationsService recommendationsService, ILogger<ProductPage> logger) : PageModel
+{
+    public async Task OnGet(int productId)
+    {
+        // (... some code here ...)
+        this.Recommendations = await GetRecommendations(productId);
+        // (... more code here ...)
+    }
+
+    private async Task<List<Recommendation>> GetRecommendations(int productId)
+    {
+        var result = await recommendationsService.Fetch(this.User.Id, productId);
+        if (result.IsError)
+        {
+            logger.LogInformation("Failed to load recommendations: {ErrorDetails}", result.Error.ToString());
+            return new List<Recommendation>();
+        }
+
+        return result.Value;
+    }
+}
+```
+
+## Which Result should I use?
+
+This package comes with two `Result` types:
+- The fully generic [`Result<TValue, TError>`](xref:Badeend.Result`2): The `TError` type can be anything that describes the failure; an `enum`, a `record`, a list of validation messages, etc... Let your imagination run wild. As long as it contains enough information for callers of your method to take meaningful action.
+- The shorthand "standard" [`Result<TValue>`](xref:Badeend.Result`1): This is essentially an alias for `Result<T, Badeend.Error>`. (See: [`Badeend.Error`](xref:Badeend.Error)). You should generally not attempt to derive any semantic meaning from the Error's content. The shorthand result type should be treated semantically the same as `Result<T, void>` in that: all that the domain logic should care about is whether the operation succeeded or failed. The Error data is just a way to optionally carry additional developer-oriented debug information.
+
+An example of this choice can be seen in practice in the [CollectionExtensions](xref:Badeend.Results.Extensions.CollectionExtensions):
+- [`TryFirst`](xref:Badeend.Results.Extensions.CollectionExtensions.TryFirst``1(System.Collections.Generic.IEnumerable{``0})) has only one failure mode: the collection being empty. Therefore it returns: `Result<T>`.
+- [`TrySingle`](xref:Badeend.Results.Extensions.CollectionExtensions.TrySingle``1(System.Collections.Generic.IEnumerable{``0})) has two distinct failure modes: the collection being empty, and: the collection containing more than one element. Therefore it returns: `Result<T, TrySingleError>`. If the caller does not care about this distinction, they may simply ignore it or convert the result to shorthand form using [`.AsStandardResult()`](xref:Badeend.Results.Extensions.ResultExtensions.AsStandardResult``1(Badeend.Result{``0,Badeend.Error}))
+
+## When should I use Results?
+
+Of course you're free to do whatever you want, but these guidelines have helped me so far:
+
+First of all: Results are not a general purpose replacement for exceptions. Keep using exceptions! Exceptions great for fatal errors, bugs, guard clauses and other non-recoverable errors. Results don't collect stack traces _by design_.
 
 You can use Results when designing fallible methods where:
 - failures are part of the domain model and should therefore be part of the regular control flow. And/or:
 - the implementation is not in the position to decide whether failures are exceptional or not and you want to leave that up to the caller.
-
-#### Choosing an error type
-
-It can be anything that describes the failure; an `enum`, a `record`, a list of validation messages, etc... Let your mind run free.
-
-Keep in mind that the error value should contain enough information for callers of your method to do something meaningful with it. If the caller has no other option than to propagate it up the callstack (recursively), then you might as well throw an exception.
-
-One noteworthy case to watch out for is: `Result<T, Exception>`. There may be legitimate use cases for it, but it smells like it's trying to reinvent exception handling.
-
-#### Results vs. exceptions
-
-Results are not a general purpose replacement for exceptions. Keep using exceptions! Exceptions great for fatal errors, bugs, guard clauses and other non-recoverable errors. That being said, Results _may_ be a suitable replacement for exceptions if you're currently catching exceptions for non-local control flow.
-
-Results don't collect stack traces _by design_.
 
 Ultimately, Results and Exceptions both have their pros and cons, and the choice depends on factors such as the specific requirements of your application, the level of robustness needed, and personal or team preferences.
 
@@ -143,7 +184,7 @@ FYI, even the BCL isn't consistent in this regard. E.g.:
 
 Yes! and: No!
 
-Checked exceptions get a bad rep because they're implemented in only one mainstream language: Java. And Java's implementation of them has turned out to be horrible in practice. In Java, all exceptions are "checked" by default, which means that _every exception_ must be explicitly marked for propagation in _every method_. This makes for an awfully laborious developer experience.
+Checked exceptions get a bad reputation because they're implemented in only one mainstream language: Java. And Java's implementation of them has turned out to be horrible in practice. In Java, all exceptions are "checked" by default, which means that _every exception_ must be explicitly marked for propagation in _every method_. This makes for an awfully laborious developer experience.
 
 However, concluding that "all checked exceptions must therefore be bad" would be throwing the baby out with the bathwater. Checked exception are still useful: _in moderation_. Java just got their defaults wrong.
 
@@ -151,13 +192,11 @@ Using C# exceptions complemented with Results is the best of both worlds; by def
 
 ## Why does this package exist?
 
-There are already dozens of similar packages. Yet, surprisingly, none of them provide what I'm looking for:
+While there are many similar packages available, this one is designed to address specific needs that others did not fully meet:
 
-- **No opinion on what is allowed to be an error.** In other words: I want the error type to be parameterized (`TError`) without constraints. IMO, hardcoding the error type to e.g. `Exception` or `string` completely defeats the purpose of using a result type _in C#_.
-
-- **Just Result, nothing else.** I'm not interested in a complete Functional Programming framework that introduces 20-or-so new concepts, pushes all code into lambdas and attempts to redefine what it means to write C#. Not because I don't like FP, but because the language & ecosystem (sadly 🥲) doesn't afford it.
-
-- **"Native" C#.** It should feel as if it is written _by_ C# developers, _for_ C# developers, for use in (existing) C# codebases. Or put differently: if such a type were to be added to the BCL, how would Microsoft design it?
+- **No opinion on what is allowed to be an error.** The error type (`TError`) is parameterized without constraints.
+- **Focus on simplicity.** This package is designed to provide just what's needed without introducing an extensive Functional Programming framework. It's about enhancing your existing C# code without overwhelming it with additional concepts.
+- **For C# developers.** The goal is to make it feel "native" to the language, designed with C# conventions in mind, and avoiding a paradigm shift in how C# code is written.
 
 <details>
   <summary>Considered alternatives</summary>

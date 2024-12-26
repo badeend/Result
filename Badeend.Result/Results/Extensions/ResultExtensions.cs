@@ -20,6 +20,13 @@ public static class ResultExtensions
 	/// <see cref="Result{TValue}"/> type. However, sometimes C#'s type inference
 	/// gets confused and needs a little help. In those cases, you can use this
 	/// method to explicitly convert from one type to the other.
+	///
+	/// Additional overloads of this method exist for specific error types:
+	/// <list type="bullet">
+	/// <item><see cref="IErrorResultExtensions.AsStandardResult">where TError : IError</see></item>
+	/// <item><see cref="EnumResultExtensions.AsStandardResult">where TError : enum</see></item>
+	/// <item><see cref="ExceptionResultExtensions.AsStandardResult">where TError : Exception</see></item>
+	/// </list>
 	/// </remarks>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
