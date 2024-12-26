@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Badeend.Error</PackageId>
-    <Description>TODO</Description>
+    <Description>System.Exception's lightweight little cousin.</Description>
     <TargetFrameworks>netstandard2.0;netcoreapp2.1;netcoreapp3.0;net5.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
