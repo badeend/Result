@@ -210,6 +210,7 @@ While there are many similar packages available, this one is designed to address
   - [DotNext](https://www.nuget.org/packages/DotNext)
   - [ErrorOr](https://www.nuget.org/packages/ErrorOr)
   - [DotNetCore.Results](https://www.nuget.org/packages/DotNetCore.Results)
+  - [SuccincT](https://www.nuget.org/packages/SuccincT)
   - [Remora.Results](https://www.nuget.org/packages/Remora.Results)
   - [ResultSharp](https://www.nuget.org/packages/ResultSharp)
   - [Feree.ResultType](https://www.nuget.org/packages/Feree.ResultType)
