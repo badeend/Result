@@ -53,7 +53,7 @@ namespace Badeend;
 /// equivalent to using the <see cref="Error()">parameterless constructor</see>.
 /// </remarks>
 [StructLayout(LayoutKind.Auto)]
-[SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Error is only comparable its Data is too, which we can't know at compile time. Don't want to promote the comparable stuff too much.")]
+[SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Error is only comparable if its Data is too, which we can't know at compile time. Don't want to promote the comparable stuff too much.")]
 #pragma warning disable CA1716 // Identifiers should not match keywords. => Don't care about VB.
 public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparable
 #pragma warning restore CA1716 // Identifiers should not match keywords.

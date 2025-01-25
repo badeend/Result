@@ -25,9 +25,9 @@ dotnet add package Badeend.Result
 
 [Full API reference](https://badeend.github.io/Result/api/Badeend.html)
 
-## Generic results
+## Example: Generic results
 
-#### Create Result
+##### Producer
 
 ```cs
 public enum SignInError // Errors can be any type you want. For this example I chose a simple enum.
@@ -56,7 +56,7 @@ public Result<Session, SignInError> SignIn(string email, string password) // <--
 }
 ```
 
-#### Check Result
+##### Consumer
 
 ```cs
 public async Task<ActionResult<Session>> PostSignIn(SignInRequest request)
@@ -83,7 +83,18 @@ public async Task<ActionResult<Session>> PostSignIn(SignInRequest request)
 }
 ```
 
-## Basic results
+## Which Result should I use?
+
+This package comes with two `Result` types:
+- The fully generic [`Result<TValue, TError>`](xref:Badeend.Result`2): The `TError` type can be anything that describes the failure; an `enum`, a `record`, a list of validation messages, etc... Let your imagination run wild. As long as it contains enough information for callers of your method to take meaningful action.
+- The shorthand "basic" [`Result<T>`](xref:Badeend.Result`1): This is essentially an alias for `Result<T, Badeend.Error>`. Though for all intents and purposes it should be treated as `Result<T, void>` in that: all that the domain logic should care about is whether the operation failed or not. The [Error](xref:Badeend.Error) payload is just a way to _optionally_ carry developer-oriented debug information.
+
+An example of this choice can be seen in practice in the [CollectionExtensions](xref:Badeend.Results.Extensions.CollectionExtensions):
+- [`TryFirst`](xref:Badeend.Results.Extensions.CollectionExtensions.TryFirst``1(System.Collections.Generic.IEnumerable{``0})) has only one failure mode: the collection being empty. Therefore it returns: `Result<T>`.
+- [`TrySingle`](xref:Badeend.Results.Extensions.CollectionExtensions.TrySingle``1(System.Collections.Generic.IEnumerable{``0})) has two distinct failure modes: the collection being empty, and: the collection containing more than one element. Therefore it returns: `Result<T, TrySingleError>`. If the caller does not care about this distinction, they may simply ignore it or convert the result to shorthand form using [`.AsBasicResult()`](xref:Badeend.Results.Extensions.ResultExtensions.AsBasicResult``1(Badeend.Result{``0,Badeend.Error}))
+
+
+## Example: Basic results
 
 Let's say we're building an e-commerce website. Each product page contain a "Recommended for you" section. The data in this section comes from an external Recommendations microservice. Because the data is requested over a network, we must take into consideration that the external request may fail. Yet, we want the product page to remain operational, even in the presence of failure in the recommendations service. In this case we'd conclude that failures are "expected" and should be handled gracefully by the caller:
 
@@ -126,21 +137,11 @@ public class ProductPage(IRecommendationsService recommendationsService, ILogger
 }
 ```
 
-## Which Result should I use?
-
-This package comes with two `Result` types:
-- The fully generic [`Result<TValue, TError>`](xref:Badeend.Result`2): The `TError` type can be anything that describes the failure; an `enum`, a `record`, a list of validation messages, etc... Let your imagination run wild. As long as it contains enough information for callers of your method to take meaningful action.
-- The shorthand "basic" [`Result<T>`](xref:Badeend.Result`1): This is essentially an alias for `Result<T, Badeend.Error>`. (See: [`Badeend.Error`](xref:Badeend.Error)). Though for all intents and purposes it should be treated as `Result<T, void>` in that: all that the domain logic should care about is whether the operation failed or not. The Error payload is just a way to _optionally_ carry developer-oriented debug information.
-
-An example of this choice can be seen in practice in the [CollectionExtensions](xref:Badeend.Results.Extensions.CollectionExtensions):
-- [`TryFirst`](xref:Badeend.Results.Extensions.CollectionExtensions.TryFirst``1(System.Collections.Generic.IEnumerable{``0})) has only one failure mode: the collection being empty. Therefore it returns: `Result<T>`.
-- [`TrySingle`](xref:Badeend.Results.Extensions.CollectionExtensions.TrySingle``1(System.Collections.Generic.IEnumerable{``0})) has two distinct failure modes: the collection being empty, and: the collection containing more than one element. Therefore it returns: `Result<T, TrySingleError>`. If the caller does not care about this distinction, they may simply ignore it or convert the result to shorthand form using [`.AsBasicResult()`](xref:Badeend.Results.Extensions.ResultExtensions.AsBasicResult``1(Badeend.Result{``0,Badeend.Error}))
-
 ## When should I use Results?
 
 Of course you're free to do whatever you want, but these guidelines have helped me so far:
 
-First of all: Results are not a general purpose replacement for exceptions. Keep using exceptions! Exceptions great for fatal errors, bugs, guard clauses and other non-recoverable errors. Results don't collect stack traces _by design_.
+First of all: Results are not a general purpose replacement for exceptions. Keep using exceptions! Exceptions great for fatal errors, bugs, guard clauses and other non-recoverable errors. Also, Results _by design_ don't collect stack traces.
 
 You can use Results when designing fallible methods where:
 - failures are part of the domain model and should therefore be part of the regular control flow. And/or:
@@ -186,19 +187,19 @@ FYI, even the BCL isn't consistent in this regard. E.g.:
 
 Yes! and: No!
 
-Checked exceptions get a bad reputation because they're implemented in only one mainstream language: Java. And Java's implementation of them has turned out to be horrible in practice. In Java, all exceptions are "checked" by default, which means that _every exception_ must be explicitly marked for propagation in _every method_. This makes for an awfully laborious developer experience.
+Checked exceptions get a bad reputation because they're implemented in only one mainstream language: Java. And Java's implementation of them has turned out to be suboptimal in practice. In Java, all exceptions are "checked" by default, which means that _every exception_ must be explicitly marked for propagation in _every method_. This makes for an awfully laborious developer experience.
 
-However, concluding that "all checked exceptions must therefore be bad" would be throwing the baby out with the bathwater. Checked exception are still useful: _in moderation_. Java just got their defaults wrong.
+However, concluding that "every form of checked exceptions must therefore be bad" would be throwing the baby out with the bathwater. Checked exception are still useful: _in moderation_. Java just got their defaults wrong.
 
-Using C# exceptions complemented with Results is the best of both worlds; by default you're never forced to unnecessarily check for errors, except for the few places where you explicitly opted-in to that (by using Result).
+Using C# exceptions complemented with Results is IMO the best of both worlds; by default you're never forced to unnecessarily check for errors, except for the few places where you explicitly opted-in to that (by using Result).
 
 ## Why does this package exist?
 
 While there are many similar packages available, this one is designed to address specific needs that others did not fully meet:
 
 - **No opinion on what is allowed to be an error.** The error type (`TError`) is parameterized without constraints.
-- **Focus on simplicity.** This package is designed to provide just what's needed without introducing an extensive Functional Programming framework. It's about enhancing your existing C# code without overwhelming it with additional concepts.
-- **For C# developers.** The goal is to make it feel "native" to the language, designed with C# conventions in mind, and avoiding a paradigm shift in how C# code is written.
+- **Focus on simplicity.** This package is designed to provide just what's needed without introducing an extensive Functional Programming framework. Users should be able to sprinkle on Results in existing codebases without overwhelming it with additional FP concepts.
+- **For C# developers.** The goal is to make it feel as "native" to the language as possible, using .NET naming & design conventions, and avoiding a paradigm shift in how C# code ought to be written.
 
 <details>
   <summary>Considered alternatives</summary>

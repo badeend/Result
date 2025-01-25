@@ -34,8 +34,8 @@ Results are commonly used in scenarios where failure is anticipated can be handl
 While there are many similar packages available, this one is designed to address specific needs that others did not fully meet:
 
 - **No opinion on what is allowed to be an error.** The error type (`TError`) is parameterized without constraints.
-- **Focus on simplicity.** This package is designed to provide just what's needed without introducing an extensive Functional Programming framework. It's about enhancing your existing C# code without overwhelming it with additional concepts.
-- **For C# developers.** The goal is to make it feel "native" to the language, designed with C# conventions in mind, and avoiding a paradigm shift in how C# code is written.
+- **Focus on simplicity.** This package is designed to provide just what's needed without introducing an extensive Functional Programming framework. Users should be able to sprinkle on Results in existing codebases without overwhelming it with additional FP concepts.
+- **For C# developers.** The goal is to make it feel as "native" to the language as possible, using .NET naming & design conventions, and avoiding a paradigm shift in how C# code ought to be written.
 
 ---
 
