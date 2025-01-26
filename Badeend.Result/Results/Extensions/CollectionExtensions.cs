@@ -45,13 +45,6 @@ public static class CollectionExtensions
 		}
 
 #pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_0_OR_GREATER
-		if (dictionary is Dictionary<TKey, TValue> systemDictionary)
-		{
-			return systemDictionary.Remove(key, out var value) ? value : KeyNotFoundError;
-		}
-#endif
-
 		if (dictionary is ConcurrentDictionary<TKey, TValue> concurrentDictionary)
 		{
 			return concurrentDictionary.TryRemove(key, out var value) ? value : KeyNotFoundError;
