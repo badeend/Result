@@ -161,7 +161,19 @@ public static class CollectionExtensions
 	/// Returns an error if the collection is empty.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.First{TSource}(IEnumerable{TSource})"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.First{TSource}(IEnumerable{TSource})"/>,
+	///     except that this method doesn't throw for empty collections.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource})"/>,
+	///     except that this method retains the distinction between: an empty
+	///     collection, and: a non-empty collection whose first element happens
+	///     to be the <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
 	public static Result<T> TryFirst<T>(this IEnumerable<T> source)
@@ -195,7 +207,19 @@ public static class CollectionExtensions
 	/// the condition in <paramref name="predicate"/>.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.First{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.First{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>,
+	///     except that this method doesn't throw if there were no matches.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>,
+	///     except that this method retains the distinction between: there were
+	///     no matches, and: there was a match but the element happens to be the
+	///     <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
 	public static Result<T> TryFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate)
@@ -226,7 +250,19 @@ public static class CollectionExtensions
 	/// Returns an error if the collection is empty.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.Last{TSource}(IEnumerable{TSource})"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.Last{TSource}(IEnumerable{TSource})"/>,
+	///     except that this method doesn't throw for empty collections.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.LastOrDefault{TSource}(IEnumerable{TSource})"/>,
+	///     except that this method retains the distinction between: an empty
+	///     collection, and: a non-empty collection whose last element happens
+	///     to be the <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
 	public static Result<T> TryLast<T>(this IEnumerable<T> source)
@@ -263,7 +299,19 @@ public static class CollectionExtensions
 	/// the condition in <paramref name="predicate"/>.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.Last{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.Last{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>,
+	///     except that this method doesn't throw if there were no matches.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.LastOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>,
+	///     except that this method retains the distinction between: there were
+	///     no matches, and: there was a match but the element happens to be the
+	///     <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
 	public static Result<T> TryLast<T>(this IEnumerable<T> source, Func<T, bool> predicate)
@@ -296,7 +344,20 @@ public static class CollectionExtensions
 	/// Returns an error if there is not exactly one element in the collection.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.Single{TSource}(IEnumerable{TSource})"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.Single{TSource}(IEnumerable{TSource})"/>,
+	///     except that this method doesn't throw for wrongly-sized collections.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/>,
+	///     except that this method retains the distinction between:
+	///     the collection doesn't contain a single element, and:
+	///     the collection has exactly one element that happens to be the
+	///     <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
 	public static Result<T, TrySingleError> TrySingle<T>(this IEnumerable<T> source)
@@ -345,7 +406,19 @@ public static class CollectionExtensions
 	/// matching the <paramref name="predicate"/>.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.Single{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.Single{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>,
+	///     except that this method doesn't throw if there wasn't exactly one match.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>,
+	///     except that this method retains the distinction between: there wasn't
+	///     exactly one match, and: there was a single match but the element
+	///     happens to be the <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
 	public static Result<T, TrySingleError> TrySingle<T>(this IEnumerable<T> source, Func<T, bool> predicate)
@@ -383,7 +456,19 @@ public static class CollectionExtensions
 	/// Returns an error if the index exceeds the sequence length.
 	/// </summary>
 	/// <remarks>
-	/// Similar to <see cref="Enumerable.ElementAt{TSource}(IEnumerable{TSource},int)"/>.
+	/// This method is similar to:
+	/// <list type="bullet">
+	///   <item>
+	///     <see cref="Enumerable.ElementAt{TSource}(IEnumerable{TSource},int)"/>,
+	///     except that this method doesn't throw if the index exceeds the sequence length.
+	///   </item>
+	///   <item>
+	///     <see cref="Enumerable.ElementAtOrDefault{TSource}(IEnumerable{TSource}, int)"/>,
+	///     except that this method retains the distinction between: the index
+	///     was out of bounds, and: the index exists but happens to contains
+	///     the <c>default</c> value.
+	///   </item>
+	/// </list>
 	/// </remarks>
 	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is negative.</exception>
