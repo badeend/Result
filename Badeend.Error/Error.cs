@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
@@ -272,7 +273,7 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 	public static Error FromEnum<TEnum>(TEnum value)
 		where TEnum : struct, Enum
 	{
-		return new(EnumError<TEnum>.Create(value));
+		return new(EnumError<TEnum>.Lookup.Instance.GetError(value));
 	}
 
 	/// <summary>
@@ -581,47 +582,24 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 		where TEnum : struct, Enum
 	{
 		private static readonly bool IsFlags = Attribute.IsDefined(typeof(TEnum), typeof(FlagsAttribute), inherit: false);
-		private static readonly Dictionary<TEnum, EnumError<TEnum>> DeclaredErrors = ComputeDeclaredErrors();
 
 		// Beware that these may be accessed from multiple threads:
 		private string? cachedMessage;
 		private object? cachedDataObject;
 
-		public string Message => this.cachedMessage ??= GetCustomMessage(value) ?? DefaultErrorMessage;
+		public string Message => this.cachedMessage ??= this.GetCustomMessage() ?? DefaultErrorMessage;
 
 		public Error? InnerError => null;
 
 		public object? Data => this.cachedDataObject ??= (object)value;
 
-		internal static EnumError<TEnum> Create(TEnum value)
+		private string? GetCustomMessage()
 		{
-			if (DeclaredErrors.TryGetValue(value, out var existingError))
+			if (!isDefined)
 			{
-				return existingError;
+				return null;
 			}
 
-			return new(value, isDefined: false);
-		}
-
-		private static Dictionary<TEnum, EnumError<TEnum>> ComputeDeclaredErrors()
-		{
-			var values = GetEnumValues();
-
-			var errors = new Dictionary<TEnum, EnumError<TEnum>>(capacity: values.Length + 1);
-
-			// Always add the default value. This may be overwritten within the loop.
-			errors[default] = new EnumError<TEnum>(default, isDefined: false);
-
-			foreach (var value in values)
-			{
-				errors[value] = new EnumError<TEnum>(value, isDefined: true);
-			}
-
-			return errors;
-		}
-
-		private static string? GetCustomMessage(TEnum value)
-		{
 			var name = GetEnumName(value);
 			if (name is null)
 			{
@@ -641,24 +619,6 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 			}
 
 			return attribute.Message;
-		}
-
-		private static TEnum[] GetEnumValues()
-		{
-#if NET5_0_OR_GREATER
-			return Enum.GetValues<TEnum>();
-#else
-			return (TEnum[])Enum.GetValues(typeof(TEnum));
-#endif
-		}
-
-		private static string? GetEnumName(TEnum value)
-		{
-#if NET5_0_OR_GREATER
-			return Enum.GetName<TEnum>(value);
-#else
-			return Enum.GetName(typeof(TEnum), value);
-#endif
 		}
 
 		internal override void SerializeInto(StringBuilder output)
@@ -683,6 +643,122 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 				output.Append("Data: ");
 				output.Append(DataToString(value));
 			}
+		}
+
+		internal abstract class Lookup
+		{
+			internal static readonly Lookup Instance = CreateInstance();
+
+			private static Lookup CreateInstance()
+			{
+				var values = GetEnumValues();
+				var underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+
+				// If the enum is backed by an `int` and all its values are
+				// laid out sequentially starting at 0 (which is the default),
+				// we can use a more efficient array-based lookup.
+				// Benchmarking shows that this is approximately 20x faster than
+				// the dictionary-based lookup.
+				if (underlyingType == typeof(int) && Int32ArrayLookup.TryCreate(values) is { } int32Lookup)
+				{
+					return int32Lookup;
+				}
+
+				return DictionaryLookup.Create(values);
+			}
+
+			internal abstract IError GetError(TEnum value);
+
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			private static IError GetErrorSlow(TEnum value) => new EnumError<TEnum>(value, isDefined: false);
+
+			private sealed class Int32ArrayLookup(IError[] declaredErrors) : Lookup
+			{
+				internal static Lookup? TryCreate(TEnum[] values)
+				{
+					var errors = new IError[values.Length];
+
+					for (int i = 0; i < values.Length; i++)
+					{
+						var value = values[i];
+
+						if (GetInt32Value(value) != i)
+						{
+							return null;
+						}
+
+						errors[i] = new EnumError<TEnum>(value, isDefined: true);
+					}
+
+					return new Int32ArrayLookup(errors);
+				}
+
+				internal override IError GetError(TEnum value)
+				{
+					var intValue = GetInt32Value(value);
+
+					if ((uint)intValue < (uint)declaredErrors.Length)
+					{
+						return declaredErrors[intValue];
+					}
+
+					return GetErrorSlow(value);
+				}
+
+				[MethodImpl(MethodImplOptions.AggressiveInlining)]
+				private static int GetInt32Value(TEnum value)
+				{
+					Debug.Assert(Enum.GetUnderlyingType(typeof(TEnum)) == typeof(int));
+
+					return Unsafe.As<TEnum, int>(ref value);
+				}
+			}
+
+			private sealed class DictionaryLookup(Dictionary<TEnum, IError> declaredErrors) : Lookup
+			{
+				internal static Lookup Create(TEnum[] values)
+				{
+					var errors = new Dictionary<TEnum, IError>(capacity: values.Length + 1);
+
+					// Always add the default value. This may be overwritten within the loop.
+					errors[default] = new EnumError<TEnum>(default, isDefined: false);
+
+					foreach (var value in values)
+					{
+						errors[value] = new EnumError<TEnum>(value, isDefined: true);
+					}
+
+					return new DictionaryLookup(errors);
+				}
+
+				internal override IError GetError(TEnum value)
+				{
+					if (declaredErrors.TryGetValue(value, out var existingError))
+					{
+						return existingError;
+					}
+
+					return GetErrorSlow(value);
+				}
+			}
+		}
+
+		private static string? GetEnumName(TEnum value)
+		{
+#if NET5_0_OR_GREATER
+			return Enum.GetName<TEnum>(value);
+#else
+			return Enum.GetName(typeof(TEnum), value);
+#endif
+		}
+
+		private static TEnum[] GetEnumValues()
+		{
+#if NET5_0_OR_GREATER
+			return Enum.GetValues<TEnum>();
+#else
+			return (TEnum[])Enum.GetValues(typeof(TEnum));
+#endif
 		}
 	}
 }

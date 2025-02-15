@@ -462,6 +462,21 @@ public class ErrorTests
 	}
 
 	[Fact]
+	public void Int32EnumSpecialization()
+	{
+		var a1 = Error.FromEnum(RegularEnum.A).Data;
+		var a2 = Error.FromEnum(RegularEnum.A).Data;
+
+		Assert.True(object.ReferenceEquals(a1, a2));
+
+		var tooLow = (RegularEnum)(-1);
+		var tooHigh = (RegularEnum)9999;
+
+		Assert.True((RegularEnum)Error.FromEnum(tooLow).Data! == tooLow);
+		Assert.True((RegularEnum)Error.FromEnum(tooHigh).Data! == tooHigh);
+	}
+
+	[Fact]
 	public void SizeOf()
 	{
 		Assert.Equal(Unsafe.SizeOf<object>(), Unsafe.SizeOf<Error>());
@@ -476,6 +491,7 @@ public class ErrorTests
 		var someException = new Exception("My message");
 		var someIError = new MyCustomError("My message");
 		_ = Error.FromEnum(MyCustomEnumError.MyMessage).ToString(); // Preload type-level cache.
+		_ = Error.FromEnum(RegularEnum.B).ToString(); // Preload type-level cache.
 
 		var before = GC.GetAllocatedBytesForCurrentThread();
 
@@ -496,12 +512,14 @@ public class ErrorTests
 			accumulator += new Error(someIError).Message.Length;
 			accumulator += Error.FromEnum(MyCustomEnumError.MyMessage).Message.Length;
 			accumulator += Error.FromEnum(MyCustomEnumError.MyMessage).Data is null ? 0 : 1;
+			accumulator += Error.FromEnum(RegularEnum.B).Message.Length;
+			accumulator += Error.FromEnum(RegularEnum.B).Data is null ? 0 : 1;
 		}
 
 		var actual = GC.GetAllocatedBytesForCurrentThread() - before;
 
 		// This is an imperfect science, so we'll allow some margin. As long as
-		// the jitter is effectively less than 1 byte per iteration, we should
+		// the variance is effectively less than 1 byte per iteration, we should
 		// be fine:
 		Assert.InRange(actual, 0, iterations / 10);
 
