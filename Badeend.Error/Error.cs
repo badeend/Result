@@ -138,7 +138,7 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 	};
 
 	[Pure]
-	internal string? StackTrace => this.obj switch
+	private string? StackTrace => this.obj switch
 	{
 		Exception e => e.StackTrace,
 		_ => null,

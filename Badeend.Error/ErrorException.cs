@@ -32,5 +32,5 @@ internal sealed class Error : Exception
 		}
 	}
 
-	public override string? StackTrace => this.ErrorValue.StackTrace;
+	public override string? StackTrace => null; // ErrorExceptions should never be thrown.
 }
