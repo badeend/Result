@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Badeend.Result.Tests", "Bad
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Badeend.Error", "Badeend.Error\Badeend.Error.csproj", "{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Badeend.Result.Benchmarks", "Badeend.Result.Benchmarks\Badeend.Result.Benchmarks.csproj", "{A1E7CCC6-01D0-4080-91C9-60525BA3D711}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B674D4C5-2C85-4F33-A64A-70F44A9A81D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1E7CCC6-01D0-4080-91C9-60525BA3D711}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1E7CCC6-01D0-4080-91C9-60525BA3D711}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1E7CCC6-01D0-4080-91C9-60525BA3D711}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1E7CCC6-01D0-4080-91C9-60525BA3D711}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
