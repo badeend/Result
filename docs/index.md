@@ -96,7 +96,7 @@ An example of this choice can be seen in practice in the [CollectionExtensions](
 
 ## Example: Basic results
 
-Let's say we're building an e-commerce website. Each product page contain a "Recommended for you" section. The data in this section comes from an external Recommendations microservice. Because the data is requested over a network, we must take into consideration that the external request may fail. Yet, we want the product page to remain operational, even in the presence of failure in the recommendations service. In this case we'd conclude that failures are "expected" and should be handled gracefully by the caller:
+Let's say we're building an e-commerce website. Each product page contain a "Recommended for you" section. The data in this section comes from an external Recommendations service. Because the data is requested over a network, we must take into consideration that the external request may fail. Yet, we want the product page to remain operational, even in the presence of failure in the recommendations service. In this case we'd conclude that failures are "expected" and should be handled gracefully by the caller:
 
 ```cs
 public interface IRecommendationsService
@@ -147,7 +147,7 @@ You can use Results when designing fallible methods where:
 - failures are part of the domain model and should therefore be part of the regular control flow. And/or:
 - the implementation is not in the position to decide whether failures are exceptional or not and you want to leave that up to the caller.
 
-Ultimately, Results and Exceptions both have their pros and cons, and the choice depends on factors such as the specific requirements of your application, the level of robustness needed, and personal or team preferences.
+Results and Exceptions both have their pros and cons. Ultimately, the dividing line depends on factors such as the specific requirements of your application, the level of robustness needed, and personal or team preferences.
 
 #### Results vs. the `bool Try***(out T t)` pattern
 
@@ -155,18 +155,31 @@ Results are a generalization of the `bool Try***(out T t)` pattern. The Try patt
 - has exactly one failure mode, and:
 - is not `async`. (`out` parameters don't work on async methods.)
 
-Something to keep in mind when using the Try pattern: you are expected to provide a non-Try variant as well that throws the error instead of returning it.
+Something to keep in mind when using the Try pattern: by convention you are expected to provide a non-Try variant as well that throws the error instead of returning it.
 
 The advantages of Results over Try methods:
 - Works with `async` methods.
 - Works with any number/kind of failures. (Technically you could use multiple `out` parameters for the additional error data, but that is [frowned upon](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1021#how-to-fix-violations:~:text=If%20the%20method%20must%20return%20multiple%20values%2C%20redesign%20it%20to%20return%20a%20single%20instance%20of%20an%20object%20that%20holds%20the%20values))
-- No API duplication. You only have to expose one Result-returning method. The caller decides whether failures should throw or not.
+- No API duplication. You only need to expose one Result-returning method. The caller decides whether failures should throw or not.
 
 #### Results vs. nullables
 
-The cookie cutter answer is: Nullables are about optionality, Results are about fallability.
+TLDR: Nullables are about optionality, Results are about fallability.
 
-However, especially when a method has only one failure mode, the distinction can become blurry. Consider the following snippet:
+Nullable types and Result types are _mechanically_ equivalent in that they can be in one of two states: either there is a value (`notnull`, `Success`) or there isn't a value (`null`, `Error`). But _semantically_ they communicate different things. Consider the following example:
+
+```cs
+public record Person
+{
+    public string FirstName { get; }
+    public ?????? MiddleName { get; } // Not all persons have a middle name.
+    public string LastName { get; }
+}
+```
+
+We want to model the fact that not all persons have middle name in the property's type. Technically, we could use a `Result<string>` and that would work just fine. Though personally, I'd keep using a plain old nullable `string?` here. The lack of a middle name is not a "failure"; there's nothing _wrong_ with having no middle name. As matter of fact, more than half of the world doesn't have one. :)
+
+In general, I would limit the use of Results to method return types only; i.e. places where the operation itself can fail. One subtle case to highlight is methods that have exactly one failure mode. For those, the distinction between optionality and fallibility may become blurry at times. Take the following snippet:
 
 ```cs
 class MetaData
@@ -175,13 +188,15 @@ class MetaData
 }
 ```
 
-What happens when the `key` is not present? It depends on whether the caller is expecting the key to exist or not;
+What happens when the `key` is not present? It depends on whether `null` itself is a valid metadata value and whether the caller is expecting the key to exist or not;
 - If the key is expected to exist, a non-existent key should be an error.
 - If the key isn't required to exist, a Nullable return type could suffice. Keep in mind that you then loose the distinction between: the key doesn't exist, and: the key exists but its value is null.
 
 FYI, even the BCL isn't consistent in this regard. E.g.:
 - [`Dictionary<TKey, TValue>`](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2.item?view=net-8.0) fails on non-existing keys.
 - [`NameValueCollection`](https://learn.microsoft.com/en-us/dotnet/api/system.collections.specialized.namevaluecollection.item?view=net-8.0#system-collections-specialized-namevaluecollection-item(system-string)) returns `null` for non-existing keys.
+
+For reference, the [`TryGetValue`](xref:Badeend.Results.Extensions.CollectionExtensions.TryGetValue``2(System.Collections.Generic.IReadOnlyDictionary{``0,``1},``0)) extension method in this package considers it an error and return a Result because of that.
 
 #### Are Results effectively Java's "checked exceptions"?
 
@@ -191,7 +206,7 @@ Checked exceptions get a bad reputation because they're implemented in only one 
 
 However, concluding that "every form of checked exceptions must therefore be bad" would be throwing the baby out with the bathwater. Checked exception are still useful: _in moderation_. Java just got their defaults wrong.
 
-Using C# exceptions complemented with Results is IMO the best of both worlds; by default you're never forced to unnecessarily check for errors, except for the few places where you explicitly opted-in to that (by using Result).
+Using C#'s Exceptions complemented with Results is IMO the best of both worlds; by default you're never forced to unnecessarily check for errors, except for the few places where you explicitly opted-in to that (by using Result).
 
 ## Why does this package exist?
 
