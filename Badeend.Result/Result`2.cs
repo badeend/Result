@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Badeend.Results.Extensions;
 
 namespace Badeend;
 
@@ -308,8 +309,8 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public override bool Equals(object? obj) => obj switch
 	{
-		Result<TValue, TError> result => this.Equals(result),
-		Result<TValue> result => this.Equals(result.inner),
+		Result<TValue, TError> otherResult => this.Equals(otherResult),
+		Result<TValue> otherResult when this is Result<TValue, Error> thisResult => thisResult.Equals(otherResult.AsGenericResult()),
 		_ => false,
 	};
 
@@ -318,7 +319,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
 	{
 		null => 1,
 		Result<TValue, TError> otherResult => this.CompareTo(otherResult),
-		Result<TValue> otherResult when this is Result<TValue, Error> thisResult => thisResult.CompareTo(otherResult.inner),
+		Result<TValue> otherResult when this is Result<TValue, Error> thisResult => thisResult.CompareTo(otherResult.AsGenericResult()),
 
 		// FYI, we could additionally match against `TValue` and `TError` directly,
 		// but if they represent the same type or are subtypes of each other

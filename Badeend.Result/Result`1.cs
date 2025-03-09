@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Badeend.Results.Extensions;
 
 namespace Badeend;
 
@@ -50,35 +51,44 @@ namespace Badeend;
 /// </remarks>
 /// <typeparam name="TValue">Type of the result when the operation succeeds.</typeparam>
 [StructLayout(LayoutKind.Auto)]
+[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case", Justification = "Internal")]
 [SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Result is only comparable if TValue and Error are, which we can't know at compile time. Don't want to promote the comparable stuff too much.")]
 public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<Result<TValue>>, IComparable
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
-	internal readonly Result<TValue, Error> inner;
+	internal readonly bool isSuccess;
+	internal readonly TValue value;
+	internal readonly Error error;
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1304 // Non-private readonly fields should begin with upper-case letter
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private Result(Result<TValue, Error> inner)
+	private Result(TValue value)
 	{
-		this.inner = inner;
+		this.isSuccess = true;
+		this.value = value;
+		this.error = default!;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private Result(Error error)
+	{
+		this.isSuccess = false;
+		this.value = default!;
+		this.error = error;
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.State"/>
 	[Pure]
-	public ResultState State
-	{
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		get => this.inner.State;
-	}
+	public ResultState State => this.isSuccess ? ResultState.Success : ResultState.Error;
 
 	/// <inheritdoc cref="Result{TValue,TError}.IsSuccess"/>
 	[Pure]
 	public bool IsSuccess
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		get => this.inner.IsSuccess;
+		get => this.isSuccess;
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.IsError"/>
@@ -86,37 +96,72 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	public bool IsError
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		get => this.inner.IsError;
+		get => !this.isSuccess;
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.Value"/>
 	[UnscopedRef]
 	public ref readonly TValue Value
 	{
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		get => ref this.inner.Value;
+		get
+		{
+			if (!this.isSuccess)
+			{
+				// Extracted exceptional code path into separate method to aid inlining.
+				this.ThrowNotSuccessfulException();
+			}
+
+			return ref this.value;
+		}
+	}
+
+	[DoesNotReturn]
+	private void ThrowNotSuccessfulException()
+	{
+		throw new InvalidOperationException("Operation was not successful. See inner exception for more details.", this.error.AsException());
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.Error"/>
 	[UnscopedRef]
-	public ref readonly Error Error => ref this.inner.Error;
+	public ref readonly Error Error
+	{
+		get
+		{
+			if (this.isSuccess)
+			{
+				// Extracted exceptional code path into separate method to aid inlining.
+				ThrowSuccessfulException();
+			}
+
+			return ref this.error;
+		}
+	}
+
+	[DoesNotReturn]
+	private static void ThrowSuccessfulException()
+	{
+		throw new InvalidOperationException("Operation did not fail.");
+	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.GetValueOrDefault()"/>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public TValue? GetValueOrDefault() => this.inner.GetValueOrDefault();
+	public TValue? GetValueOrDefault() => this.value;
 
 	/// <inheritdoc cref="Result{TValue,TError}.GetValueOrDefault(TValue)"/>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public TValue GetValueOrDefault(TValue defaultValue) => this.inner.GetValueOrDefault(defaultValue);
+	public TValue GetValueOrDefault(TValue defaultValue) => this.isSuccess ? this.value : defaultValue;
 
 	/// <summary>
 	/// Attempt to store the operation's success value in <paramref name="value"/>.
 	/// Returns <see langword="false"/> when the operation failed.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool TryGetValue([MaybeNullWhen(false)] out TValue value) => this.inner.TryGetValue(out value);
+	public bool TryGetValue([MaybeNullWhen(false)] out TValue value)
+	{
+		value = this.value;
+		return this.isSuccess;
+	}
 
 	/// <summary>
 	/// Attempt to store the operation's success value in <paramref name="value"/>.
@@ -124,7 +169,12 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	/// and the error is stored in <paramref name="error"/>.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool TryGetValue([MaybeNullWhen(false)] out TValue value, [MaybeNullWhen(true)] out Error error) => this.inner.TryGetValue(out value, out error);
+	public bool TryGetValue([MaybeNullWhen(false)] out TValue value, [MaybeNullWhen(true)] out Error error)
+	{
+		value = this.value;
+		error = this.error;
+		return this.isSuccess;
+	}
 
 	/// <summary>
 	/// Attempt to get the operation's error value.
@@ -132,36 +182,43 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public Error GetErrorOrDefault() => this.inner.GetErrorOrDefault();
+	public Error GetErrorOrDefault() => this.error;
 
 	/// <summary>
 	/// Attempt to get the operation's error value.
 	/// Returns <paramref name="defaultValue"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public Error GetErrorOrDefault(Error defaultValue) => this.inner.GetErrorOrDefault(defaultValue);
+	public Error GetErrorOrDefault(Error defaultValue) => this.isSuccess ? defaultValue : this.error;
 
 	/// <summary>
 	/// Attempt to store the operation's error in <paramref name="error"/>.
 	/// Returns <see langword="false"/> when the operation succeeded.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool TryGetError([MaybeNullWhen(false)] out Error error) => this.inner.TryGetError(out error);
+	public bool TryGetError([MaybeNullWhen(false)] out Error error)
+	{
+		error = this.error;
+		return !this.isSuccess;
+	}
 
 	/// <summary>
 	/// Get a string representation of the result for debugging purposes.
 	/// The format is not stable and may change without prior notice.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public override string ToString() => this.inner.ToString();
+	public override string ToString() => this.isSuccess switch
+	{
+		true => $"Success({this.value?.ToString() ?? "null"})",
+		false => $"Error({this.error.ToString() ?? "null"})",
+	};
 
 #pragma warning disable CA2225 // Operator overloads have named alternates => Result.Success is good enough
 	/// <summary>
 	/// Create a successful result.
 	/// </summary>
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static implicit operator Result<TValue>(TValue value) => new(value);
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
@@ -178,38 +235,40 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	/// Convert from a Result with an implicit error type to a Result with an explicit error type.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	[SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Exists as extension method.")]
-	public static implicit operator Result<TValue, Error>(Result<TValue> result) => result.inner;
+	public static implicit operator Result<TValue, Error>(Result<TValue> result) => result.IsSuccess ? result.value : result.error;
 
 	/// <summary>
 	/// Convert from a Result with an explicit error type to a Result with an implicit error type.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	[SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Exists as extension method.")]
-	public static implicit operator Result<TValue>(Result<TValue, Error> result) => new(result);
+	public static implicit operator Result<TValue>(Result<TValue, Error> result) => result.IsSuccess ? result.value : result.error;
 
 	/// <summary>
 	/// Check for equality.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool operator ==(Result<TValue> left, Result<TValue> right) => left.inner == right.inner;
+	public static bool operator ==(Result<TValue> left, Result<TValue> right) => left.Equals(right);
 
 	/// <summary>
 	/// Check for inequality.
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool operator !=(Result<TValue> left, Result<TValue> right) => left.inner != right.inner;
+	public static bool operator !=(Result<TValue> left, Result<TValue> right) => !left.Equals(right);
 
 	/// <summary>
 	/// Check for equality.
 	/// </summary>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool Equals(Result<TValue> other) => this.inner.Equals(other.inner);
+	public bool Equals(Result<TValue> other) => (this.isSuccess, other.isSuccess) switch
+	{
+		(true, true) => EqualityComparer<TValue>.Default.Equals(this.value, other.value),
+		(false, false) => EqualityComparer<Error>.Default.Equals(this.error, other.error),
+		_ => false,
+	};
 
 	/// <inheritdoc/>
 	[Pure]
@@ -218,25 +277,30 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	public override bool Equals(object? obj) => obj switch
 	{
 		Result<TValue> result => this.Equals(result),
-		Result<TValue, Error> result => this.inner.Equals(result),
+		Result<TValue, Error> result => this.Equals(result.AsBasicResult()),
 		_ => false,
 	};
 
 	/// <inheritdoc/>
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public override int GetHashCode() => this.inner.GetHashCode();
+	public override int GetHashCode() => HashCode.Combine(typeof(Result<TValue, Error>), this.isSuccess, this.value, this.error);
 
 	/// <inheritdoc cref="Result{TValue,TError}.CompareTo"/>
 	[Pure]
-	public int CompareTo(Result<TValue> other) => this.inner.CompareTo(other.inner);
+	public int CompareTo(Result<TValue> other) => (this.isSuccess, other.isSuccess) switch
+	{
+		(true, false) => -1,
+		(true, true) => Comparer<TValue>.Default.Compare(this.value, other.value),
+		(false, false) => Comparer<Error>.Default.Compare(this.error, other.error),
+		(false, true) => 1,
+	};
 
 	/// <inheritdoc/>
 	int IComparable.CompareTo(object? other) => other switch
 	{
 		null => 1,
 		Result<TValue> otherResult => this.CompareTo(otherResult),
-		Result<TValue, Error> otherResult => this.inner.CompareTo(otherResult),
+		Result<TValue, Error> otherResult => this.CompareTo(otherResult.AsBasicResult()),
 
 		// FYI, we could additionally match against `TValue` and `Error` directly,
 		// but this would be incompatible with the CompareTo implementation of

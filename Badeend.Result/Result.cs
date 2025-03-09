@@ -52,7 +52,7 @@ public static class Result
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ref readonly TValue GetValueRefOrDefaultRef<TValue>(ref readonly Result<TValue> result) => ref result.inner.value;
+	public static ref readonly TValue GetValueRefOrDefaultRef<TValue>(ref readonly Result<TValue> result) => ref result.value;
 
 	/// <summary>
 	/// Attempt to get a readonly reference to the operation's error value.
@@ -70,7 +70,7 @@ public static class Result
 	/// </summary>
 	[Pure]
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ref readonly Error GetErrorRefOrDefaultRef<TValue>(ref readonly Result<TValue> result) => ref result.inner.error;
+	public static ref readonly Error GetErrorRefOrDefaultRef<TValue>(ref readonly Result<TValue> result) => ref result.error;
 
 	/// <summary>
 	/// Returns the underlying <c>TValue</c> type argument of the provided
