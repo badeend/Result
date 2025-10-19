@@ -12,6 +12,8 @@ public class SimpleUsage
 {
 	private const int Iterations = 1_000_000;
 
+	private static int counter = 0;
+
 	[Benchmark]
 	public Result<string, Error> Generic()
 	{
@@ -31,18 +33,41 @@ public class SimpleUsage
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		static Result<string, Error> A()
 		{
-			if (B().TryGetValue(out var a))
+			if (B().TryGetValue(out var v, out var e))
 			{
-				return "yay";
+				return v;
 			}
 			else
 			{
-				return new Error("meh");
+				return new Error("Bad A");
 			}
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		static Result<int, Error> B() => 42;
+		static Result<string, Error> B()
+		{
+			if (C().TryGetValue(out var v, out var e))
+			{
+				return "B";
+			}
+			else
+			{
+				return e;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		static Result<string, Error> C()
+		{
+			if (counter++ % 8 != 0)
+			{
+				return "C";
+			}
+			else
+			{
+				return new Error("Bad C");
+			}
+		}
 	}
 
 	[Benchmark]
@@ -64,17 +89,40 @@ public class SimpleUsage
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		static Result<string> A()
 		{
-			if (B().TryGetValue(out var a))
+			if (B().TryGetValue(out var v, out var e))
 			{
-				return "yay";
+				return v;
 			}
 			else
 			{
-				return new Error("meh");
+				return new Error("Bad A");
 			}
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		static Result<int> B() => 42;
+		static Result<string> B()
+		{
+			if (C().TryGetValue(out var v, out var e))
+			{
+				return "B";
+			}
+			else
+			{
+				return e;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		static Result<string> C()
+		{
+			if (counter++ % 8 != 0)
+			{
+				return "C";
+			}
+			else
+			{
+				return new Error("Bad C");
+			}
+		}
 	}
 }
