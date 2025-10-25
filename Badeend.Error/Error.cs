@@ -670,11 +670,11 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 			internal abstract IError GetError(TEnum value);
 
 			[MethodImpl(MethodImplOptions.NoInlining)]
-			private static IError GetErrorSlow(TEnum value) => new EnumError<TEnum>(value, isDefined: false);
+			private static EnumError<TEnum> GetErrorSlow(TEnum value) => new(value, isDefined: false);
 
 			private sealed class Int32ArrayLookup(IError[] declaredErrors) : Lookup
 			{
-				internal static Lookup? TryCreate(TEnum[] values)
+				internal static Int32ArrayLookup? TryCreate(TEnum[] values)
 				{
 					var errors = new IError[values.Length];
 
@@ -716,7 +716,7 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 
 			private sealed class DictionaryLookup(Dictionary<TEnum, IError> declaredErrors) : Lookup
 			{
-				internal static Lookup Create(TEnum[] values)
+				internal static DictionaryLookup Create(TEnum[] values)
 				{
 					var errors = new Dictionary<TEnum, IError>(capacity: values.Length + 1);
 
