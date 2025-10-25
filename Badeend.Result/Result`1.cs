@@ -57,38 +57,46 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 {
 #pragma warning disable SA1304 // Non-private readonly fields should begin with upper-case letter
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
-	internal readonly bool isSuccess;
-	internal readonly TValue value;
+	/// <summary>
+	/// This field takes on double duty:
+	/// - It can be the special success marker value (`error.IsSuccess == true`).
+	///   In that case, the <see cref="value"/> field holds the success value.
+	/// - It can be an actual error value (`error.IsSuccess == false`).
+	///   In that case, the <see cref="value"/> field is not used and left in
+	///   its default state.
+	///
+	/// This prevents the need for an additional `isSuccess` boolean field,
+	/// keeping the overhead of this struct down to just a single pointer.
+	/// </summary>
 	internal readonly Error error;
+	internal readonly TValue value;
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1304 // Non-private readonly fields should begin with upper-case letter
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private Result(TValue value)
 	{
-		this.isSuccess = true;
 		this.value = value;
-		this.error = default!;
+		this.error = Error.Success;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private Result(Error error)
 	{
-		this.isSuccess = false;
 		this.value = default!;
 		this.error = error;
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.State"/>
 	[Pure]
-	public ResultState State => this.isSuccess ? ResultState.Success : ResultState.Error;
+	public ResultState State => this.error.IsSuccess ? ResultState.Success : ResultState.Error;
 
 	/// <inheritdoc cref="Result{TValue,TError}.IsSuccess"/>
 	[Pure]
 	public bool IsSuccess
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		get => this.isSuccess;
+		get => this.error.IsSuccess;
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.IsError"/>
@@ -96,7 +104,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	public bool IsError
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		get => !this.isSuccess;
+		get => !this.error.IsSuccess;
 	}
 
 	/// <inheritdoc cref="Result{TValue,TError}.Value"/>
@@ -105,7 +113,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	{
 		get
 		{
-			if (!this.isSuccess)
+			if (!this.error.IsSuccess)
 			{
 				// Extracted exceptional code path into separate method to aid inlining.
 				this.ThrowNotSuccessfulException();
@@ -127,7 +135,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	{
 		get
 		{
-			if (this.isSuccess)
+			if (this.error.IsSuccess)
 			{
 				// Extracted exceptional code path into separate method to aid inlining.
 				ThrowSuccessfulException();
@@ -150,7 +158,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 
 	/// <inheritdoc cref="Result{TValue,TError}.GetValueOrDefault(TValue)"/>
 	[Pure]
-	public TValue GetValueOrDefault(TValue defaultValue) => this.isSuccess ? this.value : defaultValue;
+	public TValue GetValueOrDefault(TValue defaultValue) => this.error.IsSuccess ? this.value : defaultValue;
 
 	/// <summary>
 	/// Attempt to store the operation's success value in <paramref name="value"/>.
@@ -160,7 +168,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	public bool TryGetValue([MaybeNullWhen(false)] out TValue value)
 	{
 		value = this.value;
-		return this.isSuccess;
+		return this.error.IsSuccess;
 	}
 
 	/// <summary>
@@ -173,7 +181,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	{
 		value = this.value;
 		error = this.error;
-		return this.isSuccess;
+		return this.error.IsSuccess;
 	}
 
 	/// <summary>
@@ -189,7 +197,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	/// Returns <paramref name="defaultValue"/> when the operation succeeded.
 	/// </summary>
 	[Pure]
-	public Error GetErrorOrDefault(Error defaultValue) => this.isSuccess ? defaultValue : this.error;
+	public Error GetErrorOrDefault(Error defaultValue) => this.error.IsSuccess ? defaultValue : this.error;
 
 	/// <summary>
 	/// Attempt to store the operation's error in <paramref name="error"/>.
@@ -199,7 +207,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	public bool TryGetError([MaybeNullWhen(false)] out Error error)
 	{
 		error = this.error;
-		return !this.isSuccess;
+		return !this.error.IsSuccess;
 	}
 
 	/// <summary>
@@ -207,7 +215,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	/// The format is not stable and may change without prior notice.
 	/// </summary>
 	[Pure]
-	public override string ToString() => this.isSuccess switch
+	public override string ToString() => this.error.IsSuccess switch
 	{
 		true => $"Success({this.value?.ToString() ?? "null"})",
 		false => $"Error({this.error.ToString() ?? "null"})",
@@ -263,7 +271,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 	/// Check for equality.
 	/// </summary>
 	[Pure]
-	public bool Equals(Result<TValue> other) => (this.isSuccess, other.isSuccess) switch
+	public bool Equals(Result<TValue> other) => (this.error.IsSuccess, other.error.IsSuccess) switch
 	{
 		(true, true) => EqualityComparer<TValue>.Default.Equals(this.value, other.value),
 		(false, false) => EqualityComparer<Error>.Default.Equals(this.error, other.error),
@@ -283,11 +291,11 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>, IComparable<
 
 	/// <inheritdoc/>
 	[Pure]
-	public override int GetHashCode() => HashCode.Combine(typeof(Result<TValue, Error>), this.isSuccess, this.value, this.error);
+	public override int GetHashCode() => HashCode.Combine(typeof(Result<TValue, Error>), this.error.IsSuccess, this.value, this.error);
 
 	/// <inheritdoc cref="Result{TValue,TError}.CompareTo"/>
 	[Pure]
-	public int CompareTo(Result<TValue> other) => (this.isSuccess, other.isSuccess) switch
+	public int CompareTo(Result<TValue> other) => (this.error.IsSuccess, other.error.IsSuccess) switch
 	{
 		(true, false) => -1,
 		(true, true) => Comparer<TValue>.Default.Compare(this.value, other.value),

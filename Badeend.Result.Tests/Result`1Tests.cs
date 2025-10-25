@@ -212,6 +212,7 @@ public class Result1Tests
 	[Fact]
 	public void SizeOf()
 	{
+		Assert.Equal(Unsafe.SizeOf<Result<object>>(), 2 * Unsafe.SizeOf<object>());
 		Assert.Equal(Unsafe.SizeOf<Result<int, Error>>(), Unsafe.SizeOf<Result<int>>());
 	}
 

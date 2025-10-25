@@ -761,4 +761,51 @@ public readonly struct Error : IEquatable<Error>, IComparable<Error>, IComparabl
 #endif
 		}
 	}
+
+	/// <summary>
+	/// Get the special "success" marker instance.
+	/// </summary>
+	/// <remarks>
+	/// This is used internally by Result`1 to represent successful results,
+	/// preventing the need for an additional `isSuccess` boolean field.
+	/// </remarks>
+	internal static Error Success
+	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		get => new(SuccessMarker.Singleton);
+	}
+
+	/// <summary>
+	/// Is this the special "success" marker instance?.
+	/// </summary>
+	internal bool IsSuccess
+	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		get => ReferenceEquals(this.obj, SuccessMarker.Singleton);
+	}
+
+	/// <summary>
+	/// Instances of this error type should behave exactly the same as the
+	/// `default` Error value as instances of this error type could be exposed
+	/// through e.g. `result.TryGetError(out var error)` or
+	/// `Result.GetErrorRefOrDefaultRef`, etc.
+	/// </summary>
+	private sealed class SuccessMarker : SpecialError, IError
+	{
+		internal static readonly IError Singleton = new SuccessMarker();
+
+		/// <inheritdoc/>
+		public string Message => DefaultErrorMessage;
+
+		/// <inheritdoc/>
+		public object? Data => null;
+
+		/// <inheritdoc/>
+		public Error? InnerError => null;
+
+		internal override void SerializeInto(StringBuilder output)
+		{
+			output.Append(DefaultErrorToString);
+		}
+	}
 }

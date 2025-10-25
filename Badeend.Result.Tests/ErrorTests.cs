@@ -59,6 +59,7 @@ public class ErrorTests
 	private readonly static Error s = new(new MyCustomError("My message", Data: 42));
 	private readonly static Error t = new(new MyCustomError("My message", Data: 42, InnerError: new Error("My inner message")));
 	private readonly static Error u = Error.FromEnum(MyCustomEnumError.MyMessage);
+	private readonly static Error v = Error.Success;
 
 	[Fact]
 	public void InnerError()
@@ -87,6 +88,7 @@ public class ErrorTests
 		Assert.NotNull(t.InnerError);
 		Assert.Null(t.InnerError.Value.InnerError);
 		Assert.Null(u.InnerError);
+		Assert.Null(v.InnerError);
 	}
 
 	[Fact]
@@ -116,6 +118,7 @@ public class ErrorTests
 		Assert.Equal("My message", t.Message);
 		Assert.Equal("My inner message", t.InnerError?.Message);
 		Assert.Equal("My message", u.Message);
+		Assert.Equal("Operation did not complete successfully", v.Message);
 
 		Assert.Equal("My message", Error.FromEnum(MyCustomEnumError.MyMessage).Message);
 		Assert.Equal("Other failure", Error.FromEnum(MyCustomEnumError.OtherFailure).Message);
@@ -154,6 +157,7 @@ public class ErrorTests
 		Assert.Equal(42, (int)s.Data!);
 		Assert.Equal(42, (int)t.Data!);
 		Assert.Equal(MyCustomEnumError.MyMessage, (MyCustomEnumError)u.Data!);
+		Assert.Null(v.Data);
 	}
 
 	[Fact]
@@ -206,6 +210,7 @@ public class ErrorTests
 		Assert.True(s.AsException() is { Message: var m3, InnerException: null } && m3 == $"My message{Environment.NewLine}Data: 42");
 		Assert.True(t.AsException() is { Message: var m4, InnerException: { Message: "My inner message", InnerException: null } } && m4 == $"My message{Environment.NewLine}Data: 42");
 		Assert.True(u.AsException() is { Message: var m5, InnerException: null } && m5 == $"My message{Environment.NewLine}Data: MyMessage");
+		Assert.True(v.AsException() is { Message: "Operation did not complete successfully", InnerException: null });
 	}
 
 	[Fact]
@@ -232,6 +237,30 @@ public class ErrorTests
 		Assert.True(w1 == e1);
 		Assert.True(w2 == e2);
 		Assert.True(w2.InnerError == e1);
+	}
+
+	[Fact]
+	public void IsSuccess()
+	{
+		Assert.False(a.IsSuccess);
+		Assert.False(b.IsSuccess);
+		Assert.False(c.IsSuccess);
+		Assert.False(d.IsSuccess);
+		Assert.False(e.IsSuccess);
+		Assert.False(g.IsSuccess);
+		Assert.False(h.IsSuccess);
+		Assert.False(j.IsSuccess);
+		Assert.False(k.IsSuccess);
+		Assert.False(m.IsSuccess);
+		Assert.False(n.IsSuccess);
+		Assert.False(o.IsSuccess);
+		Assert.False(p.IsSuccess);
+		Assert.False(q.IsSuccess);
+		Assert.False(r.IsSuccess);
+		Assert.False(s.IsSuccess);
+		Assert.False(t.IsSuccess);
+		Assert.False(u.IsSuccess);
+		Assert.True(v.IsSuccess);
 	}
 
 	[Fact]
@@ -312,6 +341,9 @@ public class ErrorTests
 		""");
 		AssertEqual(u, """
 		Badeend.Tests.ErrorTests+MyCustomEnumError.MyMessage: My message
+		""");
+		AssertEqual(v, """
+		Error: Operation did not complete successfully
 		""");
 
 
@@ -405,6 +437,7 @@ public class ErrorTests
 		AssertEqual(s, messageAndDataError);
 		AssertEqual(t, messageAndDataAndInnerErrorError);
 		AssertEqual(u, new Error("My message", data: MyCustomEnumError.MyMessage));
+		AssertEqual(v, defaultError);
 
 		static void AssertEqual(Error left, Error right)
 		{
@@ -510,6 +543,7 @@ public class ErrorTests
 			accumulator += new Error(someException).Message.Length;
 			accumulator += new Error(someException).Data is null ? 0 : 1;
 			accumulator += new Error(someIError).Message.Length;
+			accumulator += Error.Success.Message.Length;
 			accumulator += Error.FromEnum(MyCustomEnumError.MyMessage).Message.Length;
 			accumulator += Error.FromEnum(MyCustomEnumError.MyMessage).Data is null ? 0 : 1;
 			accumulator += Error.FromEnum(RegularEnum.B).Message.Length;
